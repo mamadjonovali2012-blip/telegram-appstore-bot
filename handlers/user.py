@@ -114,7 +114,7 @@ async def on_download(cq: CallbackQuery):
 async def cmd_search(message: Message):
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Укажите запрос: /search <текст>")
+        await message.answer("Укажите запрос: /search &lt;текст&gt;")
         return
     query = parts[1].strip()
     results = find_apps(query)
