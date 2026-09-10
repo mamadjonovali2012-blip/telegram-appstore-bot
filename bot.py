@@ -1,20 +1,43 @@
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 
-from config import BOT_TOKEN
+from aiohttp import web
+
+from config import BOT_TOKEN, PROXY
 from handlers import admin, user
 
 logging.basicConfig(level=logging.INFO)
+
+PORT = int(os.getenv("PORT", 10000))
+
+
+async def health(request):
+    return web.Response(text="ok")
 
 
 async def main():
     if not BOT_TOKEN:
         raise ValueError("BOT_TOKEN не задан в .env")
 
-    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
+    app = web.Application()
+    app.router.add_get("/", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", PORT)
+    await site.start()
+    logging.info("Health server listening on 0.0.0.0:%d", PORT)
+
+    session = AiohttpSession(proxy=PROXY) if PROXY else None
+    bot = Bot(
+        token=BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode="HTML"),
+        session=session,
+    )
     dp = Dispatcher()
 
     dp.include_router(admin.router)
