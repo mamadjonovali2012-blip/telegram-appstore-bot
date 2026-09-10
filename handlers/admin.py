@@ -1,3 +1,5 @@
+import html
+
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
@@ -56,7 +58,9 @@ async def upload_file(message: Message, state: FSMContext):
         added_by=message.from_user.id,
     )
     await state.clear()
-    await message.answer(f"✅ Приложение «{app.name}» добавлено (ID: `{app.id}`).")
+    await message.answer(
+        f"✅ Приложение «{html.escape(app.name)}» добавлено (ID: `{app.id}`)."
+    )
 
 
 @router.message(UploadState.waiting_for_file)
@@ -75,7 +79,7 @@ async def cmd_delete(message: Message):
         return
     await message.answer(
         "Выберите ID приложения для удаления:\n"
-        + "\n".join(f"`{a.id}` — {a.name}" for a in apps)
+        + "\n".join(f"`{a.id}` — {html.escape(a.name)}" for a in apps)
     )
 
 
@@ -86,7 +90,7 @@ async def cmd_rm(message: Message):
         return
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Укажите ID: /rm <id>")
+        await message.answer("Укажите ID: /rm &lt;id&gt;")
         return
     app_id = parts[1].strip()
     remove_app(app_id)

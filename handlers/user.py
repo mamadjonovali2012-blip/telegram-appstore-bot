@@ -1,3 +1,5 @@
+import html
+
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
@@ -12,9 +14,9 @@ APPS_PER_PAGE = 8
 def _app_card(app):
     size_mb = round(app.size / (1024 * 1024), 2) if app.size else 0
     return (
-        f"📦 <b>{app.name}</b>\n"
-        f"📄 {app.description}\n"
-        f"📎 {app.file_name} ({size_mb} MB)"
+        f"📦 <b>{html.escape(app.name)}</b>\n"
+        f"📄 {html.escape(app.description)}\n"
+        f"📎 {html.escape(app.file_name)} ({size_mb} MB)"
     )
 
 
@@ -106,7 +108,7 @@ async def on_download(cq: CallbackQuery):
     if not app:
         await cq.answer("Приложение не найдено.", show_alert=True)
         return
-    await cq.message.answer_document(app.file_id, caption=f"📦 {app.name}")
+    await cq.message.answer_document(app.file_id, caption=f"📦 {html.escape(app.name)}")
     await cq.answer()
 
 
