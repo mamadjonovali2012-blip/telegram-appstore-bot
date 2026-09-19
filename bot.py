@@ -2,14 +2,14 @@ import asyncio
 import logging
 import os
 
-from aiogram import Bot, Dispatcher, F, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.filters import Command
 
 from aiohttp import web
 
 from config import BOT_TOKEN, PROXY
+from backup import restore_backup, backup_loop
 from handlers import admin, user
 
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +40,9 @@ async def main():
     site = web.TCPSite(runner, "0.0.0.0", PORT)
     await site.start()
     logging.info("Health server listening on 0.0.0.0:%d", PORT)
+
+    await restore_backup()
+    asyncio.create_task(backup_loop(300))
 
     session = AiohttpSession(proxy=PROXY) if PROXY else None
     bot = Bot(

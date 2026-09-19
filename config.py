@@ -10,3 +10,5 @@ ADMIN_IDS: list[int] = [
 ]
 DB_FILE: str = os.getenv("DB_FILE", "apps.db")
 PROXY: str = os.getenv("PROXY", "")
+GITHUB_TOKEN: str = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPO: str = os.getenv("GITHUB_REPO", "")

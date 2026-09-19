@@ -11,5 +11,9 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        sync: false
       - key: DB_FILE
         value: apps.db
