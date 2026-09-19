@@ -36,6 +36,16 @@ def _init_db():
             created_at TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS app_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+            version TEXT NOT NULL,
+            file_id TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            size INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
             lang TEXT NOT NULL DEFAULT 'ru',
@@ -51,7 +61,24 @@ def _init_db():
         CREATE INDEX IF NOT EXISTS idx_apps_category ON apps(category);
         CREATE INDEX IF NOT EXISTS idx_apps_downloads ON apps(downloads DESC);
         CREATE INDEX IF NOT EXISTS idx_apps_created ON apps(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_ver_app_id ON app_versions(app_id);
     """)
+    conn.commit()
+    _migrate_versions(conn)
+
+
+def _migrate_versions(conn):
+    """Перенести текущий файл приложения в app_versions как версию 1.0, если там пусто."""
+    apps = conn.execute("SELECT * FROM apps").fetchall()
+    for a in apps:
+        existing = conn.execute(
+            "SELECT 1 FROM app_versions WHERE app_id=?", (a["id"],)
+        ).fetchone()
+        if not existing and a["file_id"]:
+            conn.execute(
+                "INSERT INTO app_versions (app_id, version, file_id, file_name, size, created_at) VALUES (?,?,?,?,?,?)",
+                (a["id"], a["version"] or "1.0", a["file_id"], a["file_name"], a["size"], a["created_at"]),
+            )
     conn.commit()
 
 
@@ -97,6 +124,11 @@ def list_apps(category=None, sort="new", page=0, per_page=10):
     return [dict(r) for r in rows]
 
 
+def versions_count(app_id):
+    conn = get_conn()
+    return conn.execute("SELECT COUNT(*) FROM app_versions WHERE app_id=?", (app_id,)).fetchone()[0]
+
+
 def count_apps(category=None):
     conn = get_conn()
     where = "WHERE category=?" if category else ""
@@ -125,6 +157,7 @@ def remove_app(app_id):
     conn = get_conn()
     conn.execute("DELETE FROM apps WHERE id=?", (app_id,))
     conn.execute("DELETE FROM favorites WHERE app_id=?", (app_id,))
+    conn.execute("DELETE FROM app_versions WHERE app_id=?", (app_id,))
     conn.commit()
 
 
@@ -136,6 +169,42 @@ def update_app(app_id, **kwargs):
         return
     set_clause = ", ".join(f"{k}=?" for k in updates)
     conn.execute(f"UPDATE apps SET {set_clause} WHERE id=?", (*updates.values(), app_id))
+    conn.commit()
+
+
+# --- Versions ---
+
+def add_version(app_id, version, file_id, file_name, size):
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    cur = conn.execute(
+        "INSERT INTO app_versions (app_id, version, file_id, file_name, size, created_at) VALUES (?,?,?,?,?,?)",
+        (app_id, version, file_id, file_name, size, now),
+    )
+    conn.execute("UPDATE apps SET version=?, file_id=?, file_name=?, size=? WHERE id=?",
+                 (version, file_id, file_name, size, app_id))
+    conn.commit()
+    return cur.lastrowid
+
+
+def get_versions(app_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM app_versions WHERE app_id=? ORDER BY created_at DESC, id DESC",
+        (app_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_version(version_id):
+    conn = get_conn()
+    row = conn.execute("SELECT * FROM app_versions WHERE id=?", (version_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def remove_version(version_id):
+    conn = get_conn()
+    conn.execute("DELETE FROM app_versions WHERE id=?", (version_id,))
     conn.commit()
 
 

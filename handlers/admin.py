@@ -13,6 +13,7 @@ from config import ADMIN_IDS
 from db import (
     add_app, remove_app, get_app, update_app, get_stats, list_apps, count_apps,
     all_user_ids, text, CATEGORIES, cat_name, size_mb,
+    add_version, get_versions, remove_version,
 )
 
 router = Router()
@@ -31,6 +32,11 @@ class UploadState(StatesGroup):
 
 class EditState(StatesGroup):
     value = State()
+
+
+class NewVersionState(StatesGroup):
+    version = State()
+    file = State()
 
 
 class BroadcastState(StatesGroup):
@@ -213,14 +219,20 @@ async def edit_pick(cq: CallbackQuery, state: FSMContext):
             [InlineKeyboardButton(text="🔢 Версия", callback_data=f"editfield_version_{app_id}")],
             [InlineKeyboardButton(text="📎 Имя файла", callback_data=f"editfield_file_name_{app_id}")],
             [InlineKeyboardButton(text="📦 Новый файл", callback_data=f"editfield_file_{app_id}")],
+            [InlineKeyboardButton(text="➕ Новая версия", callback_data=f"newver_{app_id}")],
             [InlineKeyboardButton(text="⬅️ Назад", callback_data="editback")],
         ]
     )
+    versions = get_versions(app_id)
+    vers_line = "\n".join(
+        f"• v{html.escape(v['version'])} — {html.escape(v['file_name'])} ({size_mb(v['size'])} MB)"
+        for v in versions
+    ) or "—"
     await cq.message.edit_text(
         f"✏️ <b>{html.escape(app['name'])}</b>\n\n"
         f"ID: <code>{app['id']}</code>\n"
-        f"📂 {cat_name(app['category'])} · v{html.escape(app['version'])} · ⬇️ {app['downloads']}\n"
-        f"📎 {html.escape(app['file_name'])}\n\n"
+        f"📂 {cat_name(app['category'])} · ⬇️ {app['downloads']}\n"
+        f"📎 Файлы ({len(versions)}):\n{vers_line}\n\n"
         f"Что изменить?",
         reply_markup=kb,
     )
@@ -297,6 +309,59 @@ async def edit_value(message: Message, state: FSMContext, bot: Bot):
     await state.clear()
     label = {"name": "Название", "description": "Описание", "version": "Версия", "file_name": "Имя файла"}.get(field, field)
     await message.answer(f"✅ {label} обновлено: <b>{html.escape(str(new_value))}</b>")
+
+
+@router.callback_query(F.data.startswith("newver_"))
+async def new_version_start(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    await state.update_data(newver_app_id=app_id)
+    await state.set_state(NewVersionState.version)
+    await cq.message.edit_text(
+        f"➕ Новая версия для <b>{html.escape(app['name'])}</b>\n\n"
+        f"Введите номер версии (например 2.0):"
+    )
+    await cq.answer()
+
+
+@router.message(NewVersionState.version)
+async def new_version_num(message: Message, state: FSMContext):
+    if not is_admin(message.from_user.id):
+        return
+    ver = message.text.strip() or "1.0"
+    await state.update_data(newver_version=ver)
+    await state.set_state(NewVersionState.file)
+    await message.answer(f"📦 Отправьте файл для версии <b>{html.escape(ver)}</b>:")
+
+
+@router.message(NewVersionState.file, F.document)
+async def new_version_file(message: Message, state: FSMContext):
+    if not is_admin(message.from_user.id):
+        return
+    data = await state.get_data()
+    app_id = data.get("newver_app_id")
+    ver = data.get("newver_version", "1.0")
+    doc = message.document
+    if not app_id:
+        await state.clear()
+        return
+    add_version(app_id, ver, doc.file_id, doc.file_name, doc.file_size)
+    app = get_app(app_id)
+    await state.clear()
+    await message.answer(
+        f"✅ Версия <b>{html.escape(ver)}</b> добавлена к «{html.escape(app['name'])}»\n"
+        f"Файл: {html.escape(doc.file_name)} ({size_mb(doc.file_size)} MB)"
+    )
+
+
+@router.message(NewVersionState.file)
+async def new_version_file_invalid(message: Message):
+    await message.answer(text("upload_no_file"))
 
 
 def _delete_keyboard(apps, page, total):

@@ -17,9 +17,10 @@ GITHUB_PATH = os.getenv("GITHUB_PATH", "backup/apps_db.json")
 def export_data():
     conn = get_conn()
     data = {
-        "version": 1,
+        "version": 2,
         "exported_at": datetime.utcnow().isoformat(),
         "apps": [dict(r) for r in conn.execute("SELECT * FROM apps").fetchall()],
+        "versions": [dict(r) for r in conn.execute("SELECT * FROM app_versions").fetchall()],
         "users": [dict(r) for r in conn.execute("SELECT * FROM users").fetchall()],
         "favorites": [dict(r) for r in conn.execute("SELECT * FROM favorites").fetchall()],
     }
@@ -33,6 +34,7 @@ def import_data(payload):
     cur.execute("DELETE FROM apps")
     cur.execute("DELETE FROM users")
     cur.execute("DELETE FROM favorites")
+    cur.execute("DELETE FROM app_versions")
     for a in data.get("apps", []):
         cur.execute(
             "INSERT OR REPLACE INTO apps (id, name, description, category, icon_emoji, version, file_id, file_name, size, downloads, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -41,6 +43,14 @@ def import_data(payload):
                 a.get("icon_emoji", "📦"), a.get("version", "1.0"), a["file_id"],
                 a.get("file_name", ""), a.get("size", 0), a.get("downloads", 0),
                 a.get("added_by", 0), a.get("created_at", ""),
+            ),
+        )
+    for v in data.get("versions", []):
+        cur.execute(
+            "INSERT OR REPLACE INTO app_versions (id, app_id, version, file_id, file_name, size, created_at) VALUES (?,?,?,?,?,?,?)",
+            (
+                v.get("id"), v["app_id"], v.get("version", "1.0"), v["file_id"],
+                v.get("file_name", ""), v.get("size", 0), v.get("created_at", ""),
             ),
         )
     for u in data.get("users", []):

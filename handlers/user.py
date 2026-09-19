@@ -9,6 +9,7 @@ from db import (
     list_apps, count_apps, find_apps, get_app, get_or_create_user,
     set_user_lang, increment_downloads, toggle_favorite, get_favorites,
     is_favorite, text, CATEGORIES, cat_name, size_mb,
+    get_versions, versions_count, get_version,
 )
 
 router = Router()
@@ -61,8 +62,10 @@ def _main_menu(lang="ru"):
 
 def _app_kb(app, user_id, lang):
     fav = is_favorite(user_id, app["id"])
+    n_versions = versions_count(app["id"])
     kb = InlineKeyboardBuilder()
     kb.button(text=text("download", lang), callback_data=f"dl_{app['id']}")
+    kb.button(text=f"📦 Версии ({n_versions})", callback_data=f"vers_{app['id']}")
     kb.button(text=text("fav_btn_remove" if fav else "fav_btn_add", lang), callback_data=f"fav_{app['id']}")
     kb.button(text=text("back", lang), callback_data="main_menu")
     kb.adjust(1)
@@ -212,6 +215,47 @@ async def on_download(cq: CallbackQuery, bot: Bot):
         caption=f"{app['icon_emoji']} {html.escape(app['name'])} v{html.escape(app['version'])}",
     )
     await cq.answer(text("downloaded", name=html.escape(app["name"])))
+
+
+# --- Versions ---
+
+@router.callback_query(F.data.startswith("vers_"))
+async def on_versions(cq: CallbackQuery):
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    versions = get_versions(app_id)
+    if not versions:
+        await cq.answer(text("no_apps"), show_alert=True)
+        return
+    kb = InlineKeyboardBuilder()
+    for v in versions:
+        label = f"v{v['version']} — {v['file_name']} ({size_mb(v['size'])} MB)"
+        kb.button(text=label, callback_data=f"vdl_{v['id']}")
+    kb.button(text=text("back", "ru"), callback_data=f"app_{app_id}")
+    kb.adjust(1)
+    await cq.message.edit_text(
+        f"📦 <b>{html.escape(app['name'])}</b> — выберите версию:",
+        reply_markup=kb.as_markup(),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("vdl_"))
+async def on_version_download(cq: CallbackQuery, bot: Bot):
+    version_id = cq.data.split("_", 1)[1]
+    version = get_version(version_id)
+    if not version:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    increment_downloads(version["app_id"])
+    await cq.message.answer_document(
+        version["file_id"],
+        caption=f"📦 {html.escape(version['file_name'])} (v{html.escape(version['version'])})",
+    )
+    await cq.answer(text("downloaded", name=html.escape(version["file_name"])))
 
 
 # --- Favorites ---
