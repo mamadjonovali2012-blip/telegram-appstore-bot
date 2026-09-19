@@ -8,7 +8,7 @@ from aiogram.client.session.aiohttp import AiohttpSession
 
 from aiohttp import web
 
-from config import BOT_TOKEN, PROXY
+from config import BOT_TOKEN, PROXY, ADMIN_IDS
 from backup import restore_backup, backup_loop
 from handlers import admin, user
 
@@ -22,11 +22,27 @@ async def health(request):
 
 
 async def set_commands(bot: Bot):
-    await bot.set_my_commands([
+    default_commands = [
         types.BotCommand(command="start", description="🏠 Главное меню"),
         types.BotCommand(command="menu", description="📋 Меню"),
         types.BotCommand(command="search", description="🔍 Поиск приложений"),
-    ])
+    ]
+    admin_commands = default_commands + [
+        types.BotCommand(command="upload", description="📤 Загрузить приложение"),
+        types.BotCommand(command="edit", description="✏️ Редактировать приложение"),
+        types.BotCommand(command="delete", description="🗑 Удалить приложение"),
+        types.BotCommand(command="stats", description="📊 Статистика"),
+        types.BotCommand(command="broadcast", description="📢 Рассылка"),
+    ]
+    await bot.set_my_commands(default_commands)
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.set_my_commands(
+                admin_commands,
+                scope=types.BotCommandScopeChat(chat_id=admin_id),
+            )
+        except Exception as e:
+            logging.warning("Failed to set admin commands for %s: %s", admin_id, e)
 
 
 async def main():
