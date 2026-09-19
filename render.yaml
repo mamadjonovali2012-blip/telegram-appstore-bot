@@ -12,4 +12,4 @@ services:
       - key: ADMIN_IDS
         sync: false
       - key: DB_FILE
-        value: apps.json
+        value: apps.db

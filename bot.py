@@ -2,9 +2,10 @@ import asyncio
 import logging
 import os
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.filters import Command
 
 from aiohttp import web
 
@@ -18,6 +19,14 @@ PORT = int(os.getenv("PORT", 10000))
 
 async def health(request):
     return web.Response(text="ok")
+
+
+async def set_commands(bot: Bot):
+    await bot.set_my_commands([
+        types.BotCommand(command="start", description="🏠 Главное меню"),
+        types.BotCommand(command="menu", description="📋 Меню"),
+        types.BotCommand(command="search", description="🔍 Поиск приложений"),
+    ])
 
 
 async def main():
@@ -40,9 +49,14 @@ async def main():
     )
     dp = Dispatcher()
 
+    @dp.errors()
+    async def error_handler(event: types.ErrorEvent):
+        logging.error("Update error: %s", event.exception)
+
     dp.include_router(admin.router)
     dp.include_router(user.router)
 
+    await set_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

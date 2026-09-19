@@ -1,7 +1,7 @@
-node_modules/
 __pycache__/
 *.pyc
 *.log
 .env
-apps.json
+apps.db
 .DS_Store
+node_modules/
