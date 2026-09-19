@@ -21,6 +21,11 @@ async def health(request):
     return web.Response(text="ok")
 
 
+async def version(request):
+    commit = os.getenv("RENDER_GIT_COMMIT", "unknown")
+    return web.Response(text=f"commit={commit}")
+
+
 async def set_commands(bot: Bot):
     default_commands = [
         types.BotCommand(command="start", description="🏠 Главное меню"),
@@ -51,6 +56,7 @@ async def main():
 
     app = web.Application()
     app.router.add_get("/", health)
+    app.router.add_get("/version", version)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
