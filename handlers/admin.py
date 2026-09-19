@@ -15,6 +15,7 @@ from db import (
     all_user_ids, text, CATEGORIES, cat_name, size_mb,
     add_version, get_versions, remove_version,
 )
+from backup import push_backup, backup_configured
 
 router = Router()
 
@@ -534,3 +535,25 @@ async def broadcast_send(message: Message, state: FSMContext, bot: Bot):
         await asyncio.sleep(0.05)
     await progress_msg.edit_text(text("broadcast_done", sent=sent))
     await state.clear()
+
+
+@router.message(Command("backup"))
+async def cmd_backup(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(text("admin_only"))
+        return
+    if not backup_configured():
+        await message.answer(
+            "⚠️ Бэкап не настроен.\n\n"
+            "Добавьте на Render переменные окружения:\n"
+            "<code>GITHUB_TOKEN</code> — токен GitHub\n"
+            "<code>GITHUB_REPO</code> — username/repo\n\n"
+            "После этого выполните /backup снова."
+        )
+        return
+    msg = await message.answer("💾 Сохраняю данные на GitHub...")
+    ok = await push_backup()
+    if ok:
+        await msg.edit_text("✅ Бэкап создан! Данные сохранены на GitHub.")
+    else:
+        await msg.edit_text("❌ Не удалось сохранить. Проверьте логи Render.")

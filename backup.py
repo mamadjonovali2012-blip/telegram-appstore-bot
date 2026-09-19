@@ -9,9 +9,19 @@ import aiohttp
 
 from db import get_conn
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-GITHUB_REPO = os.getenv("GITHUB_REPO", "")
 GITHUB_PATH = os.getenv("GITHUB_PATH", "backup/apps_db.json")
+
+
+def _github_token():
+    return os.getenv("GITHUB_TOKEN", "")
+
+
+def _github_repo():
+    return os.getenv("GITHUB_REPO", "")
+
+
+def backup_configured():
+    return bool(_github_token() and _github_repo())
 
 
 def export_data():
@@ -78,13 +88,15 @@ async def _github_api(method, url, token, payload=None):
 
 
 async def push_backup():
-    if not GITHUB_TOKEN or not GITHUB_REPO:
+    token = _github_token()
+    repo = _github_repo()
+    if not token or not repo:
         logging.warning("GITHUB_TOKEN/GITHUB_REPO не заданы — бэкап отключён")
         return False
     content = export_data()
     encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_PATH}"
-    status, body = await _github_api("GET", url, GITHUB_TOKEN)
+    url = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    status, body = await _github_api("GET", url, token)
     sha = None
     if status == 200:
         try:
@@ -94,16 +106,18 @@ async def push_backup():
     payload = {"message": f"backup {datetime.utcnow().isoformat()}", "content": encoded}
     if sha:
         payload["sha"] = sha
-    put_status, _ = await _github_api("PUT", url, GITHUB_TOKEN, payload)
+    put_status, _ = await _github_api("PUT", url, token, payload)
     logging.info("Backup push: HTTP %s", put_status)
     return put_status in (200, 201)
 
 
 async def restore_backup():
-    if not GITHUB_TOKEN or not GITHUB_REPO:
+    token = _github_token()
+    repo = _github_repo()
+    if not token or not repo:
         return False
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_PATH}"
-    status, body = await _github_api("GET", url, GITHUB_TOKEN)
+    url = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    status, body = await _github_api("GET", url, token)
     if status != 200:
         logging.info("Backup not found on GitHub, starting fresh")
         return False

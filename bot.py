@@ -39,6 +39,7 @@ async def set_commands(bot: Bot):
         types.BotCommand(command="delete", description="🗑 Удалить приложение"),
         types.BotCommand(command="stats", description="📊 Статистика"),
         types.BotCommand(command="broadcast", description="📢 Рассылка"),
+        types.BotCommand(command="backup", description="💾 Сохранить данные"),
     ]
     await bot.set_my_commands(default_commands)
     for admin_id in ADMIN_IDS:
