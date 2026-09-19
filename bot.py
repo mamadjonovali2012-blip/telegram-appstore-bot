@@ -41,8 +41,7 @@ async def main():
     await site.start()
     logging.info("Health server listening on 0.0.0.0:%d", PORT)
 
-    await restore_backup()
-    asyncio.create_task(backup_loop(300))
+    asyncio.create_task(_startup_backup())
 
     session = AiohttpSession(proxy=PROXY) if PROXY else None
     bot = Bot(
@@ -62,6 +61,16 @@ async def main():
     await set_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
+
+
+async def _startup_backup():
+    try:
+        await asyncio.wait_for(restore_backup(), timeout=30)
+    except asyncio.TimeoutError:
+        logging.warning("Backup restore timed out, continuing without it")
+    except Exception as e:
+        logging.error("Backup restore failed: %s", e)
+    asyncio.create_task(backup_loop(300))
 
 
 if __name__ == "__main__":

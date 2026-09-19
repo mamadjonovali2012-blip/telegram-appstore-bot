@@ -61,7 +61,8 @@ async def _github_api(method, url, token, payload=None):
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json",
     }
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=15)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.request(method, url, headers=headers, json=payload) as resp:
             return resp.status, await resp.text()
 
