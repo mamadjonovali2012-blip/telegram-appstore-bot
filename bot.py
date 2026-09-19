@@ -31,6 +31,7 @@ async def set_commands(bot: Bot):
         types.BotCommand(command="start", description="🏠 Главное меню"),
         types.BotCommand(command="menu", description="📋 Меню"),
         types.BotCommand(command="search", description="🔍 Поиск приложений"),
+        types.BotCommand(command="cancel", description="❌ Отменить действие"),
     ]
     admin_commands = default_commands + [
         types.BotCommand(command="upload", description="📤 Загрузить приложение"),
