@@ -10,7 +10,7 @@ from aiohttp import web
 
 from config import BOT_TOKEN, PROXY, ADMIN_IDS
 from backup import restore_backup, backup_loop
-from handlers import admin, user
+from handlers import admin, common, user
 
 logging.basicConfig(level=logging.INFO)
 
@@ -77,6 +77,7 @@ async def main():
     async def error_handler(event: types.ErrorEvent):
         logging.error("Update error: %s", event.exception)
 
+    dp.include_router(common.router)
     dp.include_router(admin.router)
     dp.include_router(user.router)
 
