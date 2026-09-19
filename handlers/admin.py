@@ -29,6 +29,10 @@ class UploadState(StatesGroup):
     file = State()
 
 
+class EditState(StatesGroup):
+    value = State()
+
+
 class BroadcastState(StatesGroup):
     text = State()
 
@@ -132,6 +136,167 @@ async def cmd_delete(message: Message):
         f"🗑 <b>Удаление приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
         reply_markup=_delete_keyboard(apps, 0, total),
     )
+
+
+@router.message(Command("edit"))
+async def cmd_edit(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(text("admin_only"))
+        return
+    total = count_apps()
+    if total == 0:
+        await message.answer(text("no_apps"))
+        return
+    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    await message.answer(
+        f"✏️ <b>Редактирование приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
+        reply_markup=_edit_list_keyboard(apps, 0, total),
+    )
+
+
+def _edit_list_keyboard(apps, page, total):
+    kb = InlineKeyboardBuilder()
+    for a in apps:
+        kb.button(
+            text=f"{a['icon_emoji']} {a['name']}",
+            callback_data=f"editpick_{a['id']}",
+        )
+    kb.adjust(1)
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    nav = []
+    if page > 0:
+        nav.append(InlineKeyboardButton(text="⬅️", callback_data=f"editpage_{page - 1}"))
+    if page < total_pages - 1:
+        nav.append(InlineKeyboardButton(text="➡️", callback_data=f"editpage_{page + 1}"))
+    if nav:
+        kb.row(*nav)
+    kb.row(InlineKeyboardButton(text="🚫 Закрыть", callback_data="editclose"))
+    return kb.as_markup()
+
+
+@router.callback_query(F.data.startswith("editpage_"))
+async def edit_page(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    page = int(cq.data.split("_", 1)[1])
+    total = count_apps()
+    apps = list_apps(page=page, per_page=ADMIN_PER_PAGE)
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"✏️ <b>Редактирование приложений</b> — стр. {page + 1}/{total_pages}",
+        reply_markup=_edit_list_keyboard(apps, page, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "editclose")
+async def edit_close(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    await cq.message.delete()
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("editpick_"))
+async def edit_pick(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📝 Название", callback_data=f"editfield_name_{app_id}")],
+            [InlineKeyboardButton(text="📄 Описание", callback_data=f"editfield_description_{app_id}")],
+            [InlineKeyboardButton(text="🔢 Версия", callback_data=f"editfield_version_{app_id}")],
+            [InlineKeyboardButton(text="📎 Имя файла", callback_data=f"editfield_file_name_{app_id}")],
+            [InlineKeyboardButton(text="📦 Новый файл", callback_data=f"editfield_file_{app_id}")],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data="editback")],
+        ]
+    )
+    await cq.message.edit_text(
+        f"✏️ <b>{html.escape(app['name'])}</b>\n\n"
+        f"ID: <code>{app['id']}</code>\n"
+        f"📂 {cat_name(app['category'])} · v{html.escape(app['version'])} · ⬇️ {app['downloads']}\n"
+        f"📎 {html.escape(app['file_name'])}\n\n"
+        f"Что изменить?",
+        reply_markup=kb,
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "editback")
+async def edit_back(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    total = count_apps()
+    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"✏️ <b>Редактирование приложений</b> — стр. 1/{total_pages}",
+        reply_markup=_edit_list_keyboard(apps, 0, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("editfield_"))
+async def edit_field(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    _, field, app_id = cq.data.split("_", 2)
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    await state.update_data(edit_app_id=app_id, edit_field=field)
+    if field == "file":
+        await state.set_state(EditState.value)
+        await cq.message.edit_text(
+            f"📦 Отправьте новый файл для <b>{html.escape(app['name'])}</b>:\n"
+            f"(текущее имя: {html.escape(app['file_name'])})"
+        )
+        await cq.answer()
+        return
+    await state.set_state(EditState.value)
+    prompts = {
+        "name": "Введите новое название:",
+        "description": "Введите новое описание:",
+        "version": "Введите новую версию:",
+        "file_name": "Введите новое имя файла:",
+    }
+    await cq.message.edit_text(
+        f"{prompts[field]}\n\nТекущее: <code>{html.escape(str(app.get(field, '')))}</code>"
+    )
+    await cq.answer()
+
+
+@router.message(EditState.value)
+async def edit_value(message: Message, state: FSMContext, bot: Bot):
+    data = await state.get_data()
+    app_id = data.get("edit_app_id")
+    field = data.get("edit_field")
+    if not app_id or not field:
+        await state.clear()
+        return
+    if field == "file":
+        if not message.document:
+            await message.answer(text("upload_no_file"))
+            return
+        doc = message.document
+        update_app(app_id, file_id=doc.file_id, file_name=doc.file_name, size=doc.file_size)
+        app = get_app(app_id)
+        await state.clear()
+        await message.answer(f"✅ Файл обновлён: <b>{html.escape(app['file_name'])}</b>")
+        return
+    new_value = message.text.strip()
+    if field in ("name", "description", "version", "file_name"):
+        update_app(app_id, **{field: new_value})
+    app = get_app(app_id)
+    await state.clear()
+    label = {"name": "Название", "description": "Описание", "version": "Версия", "file_name": "Имя файла"}.get(field, field)
+    await message.answer(f"✅ {label} обновлено: <b>{html.escape(str(new_value))}</b>")
 
 
 def _delete_keyboard(apps, page, total):
