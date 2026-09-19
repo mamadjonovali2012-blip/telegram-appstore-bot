@@ -4,18 +4,20 @@ import logging
 
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from config import ADMIN_IDS
 from db import (
-    add_app, remove_app, get_app, update_app, get_stats,
+    add_app, remove_app, get_app, update_app, get_stats, list_apps, count_apps,
     all_user_ids, text, CATEGORIES, cat_name, size_mb,
 )
 
 router = Router()
+
+ADMIN_PER_PAGE = 5
 
 
 class UploadState(StatesGroup):
@@ -121,23 +123,139 @@ async def cmd_delete(message: Message):
     if not is_admin(message.from_user.id):
         await message.answer(text("admin_only"))
         return
-    from db import list_apps
-    apps = list_apps()
-    if not apps:
+    total = count_apps()
+    if total == 0:
         await message.answer(text("no_apps"))
         return
+    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    await message.answer(
+        f"🗑 <b>Удаление приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
+        reply_markup=_delete_keyboard(apps, 0, total),
+    )
+
+
+def _delete_keyboard(apps, page, total):
     kb = InlineKeyboardBuilder()
     for a in apps:
-        kb.button(text=f"{a['icon_emoji']} {a['name']}", callback_data=f"del_{a['id']}")
-    kb.adjust(1)
-    await message.answer(text("rm_hint"), reply_markup=kb.as_markup())
+        label = f"{a['icon_emoji']} {a['name']}"
+        kb.row(
+            InlineKeyboardButton(text=label, callback_data=f"delinfo_{a['id']}"),
+            InlineKeyboardButton(text="🗑", callback_data=f"delconf_{a['id']}"),
+        )
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    nav = []
+    if page > 0:
+        nav.append(InlineKeyboardButton(text="⬅️", callback_data=f"delpage_{page - 1}"))
+    if page < total_pages - 1:
+        nav.append(InlineKeyboardButton(text="➡️", callback_data=f"delpage_{page + 1}"))
+    if nav:
+        kb.row(*nav)
+    kb.row(InlineKeyboardButton(text="🚫 Закрыть", callback_data="delclose"))
+    return kb.as_markup()
 
 
-@router.callback_query(F.data.startswith("del_"))
-async def confirm_delete(cq: CallbackQuery):
+@router.callback_query(F.data.startswith("delpage_"))
+async def delete_page(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    page = int(cq.data.split("_", 1)[1])
+    total = count_apps()
+    apps = list_apps(page=page, per_page=ADMIN_PER_PAGE)
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"🗑 <b>Удаление приложений</b> — стр. {page + 1}/{total_pages}",
+        reply_markup=_delete_keyboard(apps, page, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "delclose")
+async def delete_close(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    await cq.message.delete()
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("delinfo_"))
+async def delete_info(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
     app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    await cq.message.edit_text(
+        f"📋 <b>{html.escape(app['name'])}</b>\n\n"
+        f"ID: <code>{app['id']}</code>\n"
+        f"📂 {cat_name(app['category'])} · v{html.escape(app['version'])} · ⬇️ {app['downloads']}\n\n"
+        f"Нажмите «Копировать ID», чтобы скопировать идентификатор.",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="📋 Копировать ID", copy_text=CopyTextButton(text=app["id"]))],
+                [InlineKeyboardButton(text="🗑 Удалить", callback_data=f"delconf_{app['id']}")],
+                [InlineKeyboardButton(text="⬅️ Назад", callback_data="delback")],
+            ]
+        ),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "delback")
+async def delete_back(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    total = count_apps()
+    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"🗑 <b>Удаление приложений</b> — стр. 1/{total_pages}",
+        reply_markup=_delete_keyboard(apps, 0, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("delconf_"))
+async def confirm_delete(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Да, удалить", callback_data=f"delyes_{app_id}"),
+                InlineKeyboardButton(text="❌ Отмена", callback_data="delback"),
+            ]
+        ]
+    )
+    if app:
+        await cq.message.edit_text(
+            f"⚠️ Удалить приложение <b>{html.escape(app['name'])}</b>?\n\n"
+            f"ID: <code>{app['id']}</code>\n"
+            f"Файл будет удалён безвозвратно.",
+            reply_markup=kb,
+        )
+    else:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("delyes_"))
+async def do_delete(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
     remove_app(app_id)
-    await cq.message.edit_text(text("deleted"))
+    if app:
+        await cq.message.edit_text(
+            f"✅ Удалено: <b>{html.escape(app['name'])}</b>\nID: <code>{app['id']}</code>"
+        )
+    else:
+        await cq.message.edit_text(text("deleted"))
     await cq.answer()
 
 
