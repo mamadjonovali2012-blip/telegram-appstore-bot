@@ -18,7 +18,7 @@ PER_PAGE = 8
 _search_queries = {}
 
 
-def _paginate_keyboard(apps, page, total, prefix="page"):
+def _paginate_keyboard(apps, page, total, prefix="page", with_back=True):
     kb = InlineKeyboardBuilder()
     for a in apps:
         kb.button(text=f"{a['icon_emoji']} {a['name']}", callback_data=f"app_{a['id']}")
@@ -31,6 +31,8 @@ def _paginate_keyboard(apps, page, total, prefix="page"):
         nav.append(InlineKeyboardButton(text="➡️", callback_data=f"{prefix}_{page + 1}"))
     if nav:
         kb.row(*nav)
+    if with_back:
+        kb.row(InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"))
     return kb.as_markup()
 
 
