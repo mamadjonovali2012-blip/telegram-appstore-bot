@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T11:57:03.298068",
+  "exported_at": "2026-09-20T12:02:04.218084",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -36,11 +36,11 @@
       "description": "Это мобильное приложение для андроид с исламскими мультиками.",
       "category": "education",
       "icon_emoji": "☾⋆",
-      "version": "1.1.0",
-      "file_id": "BQACAgIAAxkBAAIDcWqvqWBT3gABxJQzn_8WoXTn7cOnFwACdLwAA5qAScAEpgGmigEqPQQ",
-      "file_name": "ProphetCartoons-1.1.0.apk",
+      "version": "1.2.3",
+      "file_id": "BQACAgIAAxkBAAIDh2qvyo2BuLi8bhzRnIqtz41wkm8qAAJrpgACyc6ASbwWZ7OJO3yIPQQ",
+      "file_name": "ProphetCartoons-1.2.3.apk",
       "size": 29542,
-      "downloads": 0,
+      "downloads": 1,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:50:23.333694"
     },
