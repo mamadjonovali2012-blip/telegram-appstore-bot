@@ -15,7 +15,7 @@ from db import (
     all_user_ids, text, CATEGORIES, cat_name, size_mb,
     add_version, get_versions, remove_version,
 )
-from backup import push_backup, backup_configured
+from backup import push_backup, restore_backup, backup_configured
 
 router = Router()
 
@@ -557,3 +557,24 @@ async def cmd_backup(message: Message):
         await msg.edit_text("✅ Бэкап создан! Данные сохранены на GitHub.")
     else:
         await msg.edit_text("❌ Не удалось сохранить. Проверьте логи Render.")
+
+
+@router.message(Command("restore"))
+async def cmd_restore(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(text("admin_only"))
+        return
+    if not backup_configured():
+        await message.answer(
+            "⚠️ Бэкап не настроен.\n\n"
+            "Добавьте на Render переменные окружения:\n"
+            "<code>GITHUB_TOKEN</code> — токен GitHub\n"
+            "<code>GITHUB_REPO</code> — username/repo"
+        )
+        return
+    msg = await message.answer("📥 Восстанавливаю данные из GitHub...")
+    ok = await restore_backup()
+    if ok:
+        await msg.edit_text("✅ Данные восстановлены из бэкапа!")
+    else:
+        await msg.edit_text("❌ Не удалось восстановить. Проверьте, создан ли бэкап (/backup).")
