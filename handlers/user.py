@@ -2,7 +2,8 @@ import html
 
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from db import (
@@ -55,18 +56,27 @@ def _app_card(app, lang="ru"):
 
 
 def _main_menu(lang="ru", user_id=None):
-    kb = InlineKeyboardBuilder()
-    kb.button(text=text("new_apps", lang), callback_data="main_new")
-    kb.button(text=text("top_apps", lang), callback_data="main_top")
-    for key, emoji in CATEGORIES.items():
-        kb.button(text=f"{emoji} {cat_name(key, lang)}", callback_data=f"cat_{key}")
-    kb.button(text=text("favorites", lang), callback_data="main_fav")
-    kb.button(text="🔍 Search", callback_data="main_search")
-    kb.button(text="🌐 Language", callback_data="main_lang")
+    kb = InlineKeyboardButton
+    rows = []
     if user_id and is_admin(user_id):
-        kb.button(text="📦 Мои приложения", callback_data="main_mine")
-    kb.adjust(2, 2, 2, 2, 1, 1, 1)
-    return kb.as_markup()
+        rows.append([
+            kb(text="📦 Мои приложения", callback_data="main_mine"),
+            kb(text="⚙️ Управление", callback_data="main_admin"),
+        ])
+        rows.append([kb(text="— · — · — · —", callback_data="sep_1")])
+    rows.append([
+        kb(text=text("new_apps", lang), callback_data="main_new"),
+        kb(text=text("top_apps", lang), callback_data="main_top"),
+    ])
+    categories = [kb(text=f"{emoji} {cat_name(key, lang)}", callback_data=f"cat_{key}") for key, emoji in CATEGORIES.items()]
+    for i in range(0, len(categories), 2):
+        rows.append(categories[i:i + 2])
+    rows.append([
+        kb(text=text("favorites", lang), callback_data="main_fav"),
+        kb(text="🔍 Search", callback_data="main_search"),
+        kb(text="🌐 Language", callback_data="main_lang"),
+    ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _app_kb(app, user_id, lang):
@@ -256,6 +266,130 @@ def _mine_keyboard(apps, page, total):
         kb.row(*nav)
     kb.row(InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"))
     return kb.as_markup()
+
+
+# --- Admin control panel ---
+
+@router.callback_query(F.data == "main_admin")
+async def on_admin_panel(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        await cq.answer(text("admin_only"), show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📤 Загрузить приложение", callback_data="adm_upload")],
+            [InlineKeyboardButton(text="✏️ Редактировать", callback_data="adm_edit")],
+            [InlineKeyboardButton(text="🗑 Удалить", callback_data="adm_delete")],
+            [InlineKeyboardButton(text="📊 Статистика", callback_data="adm_stats")],
+            [InlineKeyboardButton(text="💾 Сохранить бэкап", callback_data="adm_backup")],
+            [InlineKeyboardButton(text="📥 Восстановить", callback_data="adm_restore")],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu")],
+        ]
+    )
+    await cq.message.edit_text(
+        "⚙️ <b>Панель управления</b>\n\n"
+        "Выберите действие:",
+        reply_markup=kb,
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm_upload")
+async def adm_upload(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    from handlers.admin import UploadState
+    await state.set_state(UploadState.name)
+    await cq.message.edit_text(text("upload_name"))
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm_edit")
+async def adm_edit(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    from handlers.admin import _edit_list_keyboard, ADMIN_PER_PAGE
+    total = count_apps()
+    if total == 0:
+        await cq.answer(text("no_apps"), show_alert=True)
+        return
+    from db import list_apps as db_list_apps
+    apps = db_list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"✏️ <b>Редактирование приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
+        reply_markup=_edit_list_keyboard(apps, 0, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm_delete")
+async def adm_delete(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    from handlers.admin import _delete_keyboard, ADMIN_PER_PAGE
+    total = count_apps()
+    if total == 0:
+        await cq.answer(text("no_apps"), show_alert=True)
+        return
+    from db import list_apps as db_list_apps
+    apps = db_list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    await cq.message.edit_text(
+        f"🗑 <b>Удаление приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
+        reply_markup=_delete_keyboard(apps, 0, total),
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm_stats")
+async def adm_stats(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    from db import get_stats
+    total_apps, total_downloads, total_users, top = get_stats()
+    top_lines = "\n".join(
+        f"{i+1}. {a['icon_emoji']} {html.escape(a['name'])} — {a['downloads']}⬇️"
+        for i, a in enumerate(top)
+    ) if top else "—"
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="main_admin")]]
+    )
+    await cq.message.edit_text(
+        text("stats", apps=total_apps, downloads=total_downloads, users=total_users, top=top_lines),
+        reply_markup=kb,
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm_backup")
+async def adm_backup(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    from backup import push_backup, backup_configured
+    if not backup_configured():
+        await cq.answer("⚠️ Бэкап не настроен (GITHUB_TOKEN/REPO).", show_alert=True)
+        return
+    await cq.answer("💾 Сохраняю...")
+    ok = await push_backup()
+    await cq.message.answer(
+        "✅ Бэкап создан! Данные сохранены на GitHub." if ok
+        else "❌ Не удалось сохранить. Проверьте логи."
+    )
+
+
+@router.callback_query(F.data == "adm_restore")
+async def adm_restore(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    from backup import restore_backup, backup_configured
+    if not backup_configured():
+        await cq.answer("⚠️ Бэкап не настроен (GITHUB_TOKEN/REPO).", show_alert=True)
+        return
+    await cq.answer("📥 Восстанавливаю...")
+    ok = await restore_backup()
+    await cq.message.answer(
+        "✅ Данные восстановлены из бэкапа!" if ok
+        else "❌ Не удалось восстановить."
+    )
 
 
 # --- App card ---
