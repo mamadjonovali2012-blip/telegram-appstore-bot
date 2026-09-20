@@ -11,6 +11,7 @@ from db import (
     set_user_lang, increment_downloads, toggle_favorite, get_favorites,
     is_favorite, text, CATEGORIES, cat_name, size_mb,
     get_versions, versions_count, get_version, list_apps_by_user, set_hidden,
+    list_private_by_user, add_app, remove_app,
 )
 from config import ADMIN_IDS
 
@@ -61,6 +62,9 @@ def _main_menu(lang="ru", user_id=None):
     if user_id and is_admin(user_id):
         rows.append([
             kb(text="📦 Мои приложения", callback_data="main_mine"),
+            kb(text="🔒 Личное хранилище", callback_data="main_vault"),
+        ])
+        rows.append([
             kb(text="⚙️ Управление", callback_data="main_admin"),
         ])
         rows.append([kb(text="— · — · — · —", callback_data="sep_1")])
@@ -316,6 +320,144 @@ async def mine_upload(cq: CallbackQuery, state: FSMContext):
     await state.set_state(UploadState.name)
     await cq.message.edit_text(text("upload_name"))
     await cq.answer()
+
+
+# --- Private vault (admin-only) ---
+
+@router.callback_query(F.data == "main_vault")
+async def on_vault(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        await cq.answer(text("admin_only"), show_alert=True)
+        return
+    total, apps = list_private_by_user(cq.from_user.id, page=0, per_page=PER_PAGE)
+    kb = _vault_keyboard(apps, 0, total)
+    if total == 0:
+        text_vault = (
+            "🔒 <b>Личное хранилище</b>\n\n"
+            "Сюда можно положить приложения, которые видите и скачиваете только вы.\n"
+            "Они не появятся в общем каталоге и в «Моих приложениях»."
+        )
+    else:
+        text_vault = f"🔒 <b>Личное хранилище</b> — {total} шт.\n\nТолько вы видите и скачиваете эти файлы."
+    await cq.message.edit_text(text_vault, reply_markup=kb)
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("vaultpage_"))
+async def on_vault_page(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    page = int(cq.data.split("_", 1)[1])
+    total, apps = list_private_by_user(cq.from_user.id, page=page, per_page=PER_PAGE)
+    await cq.message.edit_text(
+        f"🔒 <b>Личное хранилище</b> — {total} шт.\n\nТолько вы видите и скачиваете эти файлы.",
+        reply_markup=_vault_keyboard(apps, page, total),
+    )
+    await cq.answer()
+
+
+def _vault_keyboard(apps, page, total):
+    kb = InlineKeyboardBuilder()
+    for a in apps:
+        kb.row(
+            InlineKeyboardButton(
+                text=f"{a['icon_emoji']} {a['name']} (v{a['version']})",
+                callback_data=f"vaultapp_{a['id']}",
+            )
+        )
+    total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+    nav = []
+    if page > 0:
+        nav.append(InlineKeyboardButton(text="⬅️", callback_data=f"vaultpage_{page - 1}"))
+    if page < total_pages - 1:
+        nav.append(InlineKeyboardButton(text="➡️", callback_data=f"vaultpage_{page + 1}"))
+    if nav:
+        kb.row(*nav)
+    kb.row(
+        InlineKeyboardButton(text="📤 Загрузить в хранилище", callback_data="vault_upload"),
+        InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"),
+    )
+    return kb.as_markup()
+
+
+@router.callback_query(F.data == "vault_upload")
+async def vault_upload(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    from handlers.admin import UploadState
+    await state.update_data(is_private=True)
+    await state.set_state(UploadState.name)
+    await cq.message.edit_text(
+        "🔒 <b>Загрузка в личное хранилище</b>\n\n"
+        "Этот файл будет виден только вам.\n\n"
+        "Введите название:"
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("vaultapp_"))
+async def vault_app(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📥 Скачать", callback_data=f"vaultdl_{app_id}")],
+            [InlineKeyboardButton(text="🗑 Удалить", callback_data=f"vaultdel_{app_id}")],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data="main_vault")],
+        ]
+    )
+    await cq.message.edit_text(
+        f"🔒 <b>{html.escape(app['name'])}</b> v{html.escape(app['version'])}\n\n"
+        f"📄 {html.escape(app['description'])}\n"
+        f"📎 {html.escape(app['file_name'])} ({size_mb(app['size'])} MB)\n\n"
+        f"Приватный файл — виден только вам.",
+        reply_markup=kb,
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("vaultdl_"))
+async def vault_download(cq: CallbackQuery, bot: Bot):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app or not app.get("is_private"):
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    increment_downloads(app_id)
+    await cq.message.answer_document(
+        app["file_id"],
+        caption=f"🔒 {html.escape(app['name'])} v{html.escape(app['version'])}",
+    )
+    await cq.answer("📥 Скачано из личного хранилища")
+
+
+@router.callback_query(F.data.startswith("vaultdel_"))
+async def vault_delete(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    remove_app(app_id)
+    total, apps = list_private_by_user(cq.from_user.id, page=0, per_page=PER_PAGE)
+    if total == 0:
+        text_vault = (
+            "🔒 <b>Личное хранилище</b>\n\n"
+            "Сюда можно положить приложения, которые видите и скачиваете только вы.\n"
+            "Они не появятся в общем каталоге и в «Моих приложениях»."
+        )
+    else:
+        text_vault = f"🔒 <b>Личное хранилище</b> — {total} шт.\n\nТолько вы видите и скачиваете эти файлы."
+    await cq.message.edit_text(text_vault, reply_markup=_vault_keyboard(apps, 0, total))
+    await cq.answer(
+        f"🗑 Удалено: {app['name'] if app else app_id}"
+    )
 
 
 # --- Admin control panel ---

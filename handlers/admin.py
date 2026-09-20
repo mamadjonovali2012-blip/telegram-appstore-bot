@@ -119,9 +119,17 @@ async def upload_file(message: Message, state: FSMContext, bot: Bot):
         file_name=doc.file_name,
         size=doc.file_size,
         added_by=message.from_user.id,
+        is_private=bool(data.get("is_private", False)),
     )
     await state.clear()
-    await message.answer(text("upload_done", name=html.escape(data["name"]), id=app_id))
+    if data.get("is_private"):
+        await message.answer(
+            f"🔒 <b>Приложение сохранено в личном хранилище</b>\n\n"
+            f"«{html.escape(data['name'])}» — видите и скачиваете только вы.\n"
+            f"ID: <code>{app_id}</code>"
+        )
+    else:
+        await message.answer(text("upload_done", name=html.escape(data["name"]), id=app_id))
 
 
 @router.message(UploadState.file)

@@ -66,6 +66,15 @@ def _init_db():
     conn.commit()
     _migrate_version(conn)
     _migrate_hidden(conn)
+    _migrate_private(conn)
+
+
+def _migrate_private(conn):
+    """Добавить колонку is_private, если её нет (старые базы)."""
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(apps)").fetchall()]
+    if "is_private" not in cols:
+        conn.execute("ALTER TABLE apps ADD COLUMN is_private INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
 
 
 def _migrate_version(conn):
@@ -105,14 +114,17 @@ CATEGORIES = {
 
 # --- Apps ---
 
-def add_app(name, description, category, icon_emoji, version, file_id, file_name, size, added_by):
+def add_app(name, description, category, icon_emoji, version, file_id, file_name, size, added_by, is_private=False):
     conn = get_conn()
     app_id = uuid.uuid4().hex[:12]
     now = datetime.utcnow().isoformat()
     conn.execute(
-        "INSERT INTO apps (id, name, description, category, icon_emoji, version, file_id, file_name, size, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-        (app_id, name, description, category, icon_emoji, version, file_id, file_name, size, added_by, now),
+        "INSERT INTO apps (id, name, description, category, icon_emoji, version, file_id, file_name, size, added_by, created_at, is_private) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        (app_id, name, description, category, icon_emoji, version, file_id, file_name, size, added_by, now, 1 if is_private else 0),
     )
+    if is_private:
+        # Формально: приватные не попадают в общий список, так что downloads не растут
+        pass
     conn.commit()
     return app_id
 
@@ -131,7 +143,7 @@ def list_apps(category=None, sort="new", page=0, per_page=10, only_public=True):
         where.append("category=?")
         params.append(category)
     if only_public:
-        where.append("COALESCE(hidden,0)=0")
+        where.append("(COALESCE(hidden,0)=0 AND COALESCE(is_private,0)=0)")
     where_sql = ("WHERE " + " AND ".join(where)) if where else ""
     order = "created_at DESC" if sort == "new" else "downloads DESC"
     sql = f"SELECT * FROM apps {where_sql} ORDER BY {order} LIMIT ? OFFSET ?"
@@ -147,9 +159,19 @@ def versions_count(app_id):
 
 def list_apps_by_user(user_id, page=0, per_page=10):
     conn = get_conn()
-    total = conn.execute("SELECT COUNT(*) FROM apps WHERE added_by=?", (user_id,)).fetchone()[0]
+    total = conn.execute("SELECT COUNT(*) FROM apps WHERE added_by=? AND COALESCE(is_private,0)=0", (user_id,)).fetchone()[0]
     rows = conn.execute(
-        "SELECT * FROM apps WHERE added_by=? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        "SELECT * FROM apps WHERE added_by=? AND COALESCE(is_private,0)=0 ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        (user_id, per_page, page * per_page),
+    ).fetchall()
+    return total, [dict(r) for r in rows]
+
+
+def list_private_by_user(user_id, page=0, per_page=10):
+    conn = get_conn()
+    total = conn.execute("SELECT COUNT(*) FROM apps WHERE added_by=? AND COALESCE(is_private,0)=1", (user_id,)).fetchone()[0]
+    rows = conn.execute(
+        "SELECT * FROM apps WHERE added_by=? AND COALESCE(is_private,0)=1 ORDER BY created_at DESC LIMIT ? OFFSET ?",
         (user_id, per_page, page * per_page),
     ).fetchall()
     return total, [dict(r) for r in rows]
@@ -163,7 +185,7 @@ def count_apps(category=None, only_public=True):
         where.append("category=?")
         params.append(category)
     if only_public:
-        where.append("COALESCE(hidden,0)=0")
+        where.append("(COALESCE(hidden,0)=0 AND COALESCE(is_private,0)=0)")
     where_sql = ("WHERE " + " AND ".join(where)) if where else ""
     return conn.execute(f"SELECT COUNT(*) FROM apps {where_sql}", params).fetchone()[0]
 
@@ -174,7 +196,7 @@ def find_apps(query, page=0, per_page=10, only_public=True):
     where = "WHERE (name LIKE ? OR description LIKE ?)"
     params = [like, like]
     if only_public:
-        where += " AND COALESCE(hidden,0)=0"
+        where += " AND (COALESCE(hidden,0)=0 AND COALESCE(is_private,0)=0)"
     total = conn.execute(f"SELECT COUNT(*) FROM apps {where}", params).fetchone()[0]
     rows = conn.execute(
         f"SELECT * FROM apps {where} ORDER BY downloads DESC LIMIT ? OFFSET ?",
