@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T08:56:16.618443",
+  "exported_at": "2026-09-20T09:01:17.551691",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -8,10 +8,10 @@
       "description": "Браузер для андроид, простенький, работает на поисковике от гугла.",
       "category": "tools",
       "icon_emoji": "🌐",
-      "version": "2.4.0",
-      "file_id": "BQACAgIAAxkBAAIC9WqvnRseC4D6F3f2U-ip1WfmS-0RAALAuwADmoBJ3gABXb8TfxqcPQQ",
-      "file_name": "Aurora_v2.4.0.apk",
-      "size": 6663336,
+      "version": "2.3.5",
+      "file_id": "BQACAgIAAxkBAAIDOWqvoLo1gWnwO2L1mrW9CgYJZAIEAAIOvAADmoBJNPxlVdBqWi89BA",
+      "file_name": "Aurora_v2.3.5.apk",
+      "size": 6662892,
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:45:15.766327"
@@ -71,9 +71,33 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:54:27.664100"
+    },
+    {
+      "id": "f8b678c3659f",
+      "name": "SimCo",
+      "description": "Это мобильная игра про корпорацию",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "7",
+      "file_id": "BQACAgIAAxkBAAIDMWqvn_G6rHFkZ2gdOgABdEbxOj6_sAACB7wAA5qASaVe5EFoIM0LPQQ",
+      "file_name": "SimCo-v7.apk",
+      "size": 324445,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:57:21.491669"
     }
   ],
-  "versions": [],
+  "versions": [
+    {
+      "id": 1,
+      "app_id": "f83645e0d146",
+      "version": "2.3.5",
+      "file_id": "BQACAgIAAxkBAAIDOWqvoLo1gWnwO2L1mrW9CgYJZAIEAAIOvAADmoBJNPxlVdBqWi89BA",
+      "file_name": "Aurora_v2.3.5.apk",
+      "size": 6662892,
+      "created_at": "2026-09-20T09:00:42.750817"
+    }
+  ],
   "users": [
     {
       "id": 8542930176,
