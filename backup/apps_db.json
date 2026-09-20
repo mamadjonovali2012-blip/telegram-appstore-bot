@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T09:06:18.520931",
+  "exported_at": "2026-09-20T09:09:14.798846",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -22,10 +22,10 @@
       "description": "Это приложение для проверки телефона(Вибрация, фонарик и т.д.)",
       "category": "tools",
       "icon_emoji": "📲",
-      "version": "3.0.0",
-      "file_id": "BQACAgIAAxkBAAIDVGqvocfu1YAHGMcbBp7Vi_1PoTOEAAIjvAADmoBJ9RhZgJk1g-09BA",
-      "file_name": "PhoneTest-v3.0.0.apk",
-      "size": 56901920,
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDZmqvorZHRK7xHpEk5uRlAWjSMktjAAIzvAADmoBJvZzwNEJzf7s9BA",
+      "file_name": "PhoneTest-v1.0.0.apk",
+      "size": 56901916,
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:48:19.688446"
@@ -132,6 +132,33 @@
       "file_name": "PhoneTest-v3.0.0.apk",
       "size": 56901920,
       "created_at": "2026-09-20T09:05:12.123003"
+    },
+    {
+      "id": 6,
+      "app_id": "d23adfe58b33",
+      "version": "2.2.2",
+      "file_id": "BQACAgIAAxkBAAIDWmqvoiPyR6NZPU0hUFGMsIoJaeEyAAInvAADmoBJMlXlvT_c_Ok9BA",
+      "file_name": "PhoneTest-v2.2.2.apk",
+      "size": 20463131,
+      "created_at": "2026-09-20T09:06:44.162676"
+    },
+    {
+      "id": 7,
+      "app_id": "d23adfe58b33",
+      "version": "2.0.0",
+      "file_id": "BQACAgIAAxkBAAIDYGqvoowPJqb_HO3IX9kvEaT6WX_WAAIvvAADmoBJ7su_vgVGj-U9BA",
+      "file_name": "PhoneTest-v2.0.0.apk",
+      "size": 56901920,
+      "created_at": "2026-09-20T09:08:28.756064"
+    },
+    {
+      "id": 8,
+      "app_id": "d23adfe58b33",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDZmqvorZHRK7xHpEk5uRlAWjSMktjAAIzvAADmoBJvZzwNEJzf7s9BA",
+      "file_name": "PhoneTest-v1.0.0.apk",
+      "size": 56901916,
+      "created_at": "2026-09-20T09:09:10.488090"
     }
   ],
   "users": [
