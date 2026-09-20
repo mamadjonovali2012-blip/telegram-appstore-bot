@@ -9,13 +9,18 @@ from db import (
     list_apps, count_apps, find_apps, get_app, get_or_create_user,
     set_user_lang, increment_downloads, toggle_favorite, get_favorites,
     is_favorite, text, CATEGORIES, cat_name, size_mb,
-    get_versions, versions_count, get_version,
+    get_versions, versions_count, get_version, list_apps_by_user,
 )
+from config import ADMIN_IDS
 
 router = Router()
 PER_PAGE = 8
 
 _search_queries = {}
+
+
+def is_admin(user_id):
+    return user_id in ADMIN_IDS
 
 
 def _paginate_keyboard(apps, page, total, prefix="page", with_back=True):
@@ -49,7 +54,7 @@ def _app_card(app, lang="ru"):
     )
 
 
-def _main_menu(lang="ru"):
+def _main_menu(lang="ru", user_id=None):
     kb = InlineKeyboardBuilder()
     kb.button(text=text("new_apps", lang), callback_data="main_new")
     kb.button(text=text("top_apps", lang), callback_data="main_top")
@@ -58,7 +63,9 @@ def _main_menu(lang="ru"):
     kb.button(text=text("favorites", lang), callback_data="main_fav")
     kb.button(text="🔍 Search", callback_data="main_search")
     kb.button(text="🌐 Language", callback_data="main_lang")
-    kb.adjust(2, 2, 2, 2, 1, 1)
+    if user_id and is_admin(user_id):
+        kb.button(text="📦 Мои приложения", callback_data="main_mine")
+    kb.adjust(2, 2, 2, 2, 1, 1, 1)
     return kb.as_markup()
 
 
@@ -77,19 +84,28 @@ def _app_kb(app, user_id, lang):
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     user = get_or_create_user(message.from_user.id)
-    await message.answer(text("welcome", user["lang"]), reply_markup=_main_menu(user["lang"]))
+    await message.answer(
+        text("welcome", user["lang"]),
+        reply_markup=_main_menu(user["lang"], message.from_user.id),
+    )
 
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message):
     user = get_or_create_user(message.from_user.id)
-    await message.answer(text("choose", user["lang"]), reply_markup=_main_menu(user["lang"]))
+    await message.answer(
+        text("choose", user["lang"]),
+        reply_markup=_main_menu(user["lang"], message.from_user.id),
+    )
 
 
 @router.callback_query(F.data == "main_menu")
 async def main_menu_cb(cq: CallbackQuery):
     user = get_or_create_user(cq.from_user.id)
-    await cq.message.edit_text(text("choose", user["lang"]), reply_markup=_main_menu(user["lang"]))
+    await cq.message.edit_text(
+        text("choose", user["lang"]),
+        reply_markup=_main_menu(user["lang"], cq.from_user.id),
+    )
     await cq.answer()
 
 
@@ -186,6 +202,60 @@ async def on_top_page(cq: CallbackQuery):
         reply_markup=_paginate_keyboard(apps, page, total, prefix="tp"),
     )
     await cq.answer()
+
+
+# --- My apps (admin tab) ---
+
+@router.callback_query(F.data == "main_mine")
+async def on_my_apps(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        await cq.answer(text("admin_only"), show_alert=True)
+        return
+    user = get_or_create_user(cq.from_user.id)
+    total, apps = list_apps_by_user(cq.from_user.id, page=0, per_page=PER_PAGE)
+    if total == 0:
+        await cq.answer("😕 У вас пока нет приложений.", show_alert=True)
+        return
+    kb = _mine_keyboard(apps, 0, total)
+    await cq.message.edit_text(
+        f"📦 <b>Мои приложения</b> — {total} шт.\n\nНажмите на приложение, чтобы открыть.",
+        reply_markup=kb,
+    )
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("minepage_"))
+async def on_my_apps_page(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    page = int(cq.data.split("_", 1)[1])
+    user = get_or_create_user(cq.from_user.id)
+    total, apps = list_apps_by_user(cq.from_user.id, page=page, per_page=PER_PAGE)
+    await cq.message.edit_text(
+        f"📦 <b>Мои приложения</b> — {total} шт.\n\nНажмите на приложение, чтобы открыть.",
+        reply_markup=_mine_keyboard(apps, page, total),
+    )
+    await cq.answer()
+
+
+def _mine_keyboard(apps, page, total):
+    kb = InlineKeyboardBuilder()
+    for a in apps:
+        kb.button(
+            text=f"{a['icon_emoji']} {a['name']} (⬇️ {a['downloads']})",
+            callback_data=f"app_{a['id']}",
+        )
+    kb.adjust(1)
+    total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+    nav = []
+    if page > 0:
+        nav.append(InlineKeyboardButton(text="⬅️", callback_data=f"minepage_{page - 1}"))
+    if page < total_pages - 1:
+        nav.append(InlineKeyboardButton(text="➡️", callback_data=f"minepage_{page + 1}"))
+    if nav:
+        kb.row(*nav)
+    kb.row(InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"))
+    return kb.as_markup()
 
 
 # --- App card ---

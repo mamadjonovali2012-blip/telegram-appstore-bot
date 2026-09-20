@@ -129,6 +129,16 @@ def versions_count(app_id):
     return conn.execute("SELECT COUNT(*) FROM app_versions WHERE app_id=?", (app_id,)).fetchone()[0]
 
 
+def list_apps_by_user(user_id, page=0, per_page=10):
+    conn = get_conn()
+    total = conn.execute("SELECT COUNT(*) FROM apps WHERE added_by=?", (user_id,)).fetchone()[0]
+    rows = conn.execute(
+        "SELECT * FROM apps WHERE added_by=? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        (user_id, per_page, page * per_page),
+    ).fetchall()
+    return total, [dict(r) for r in rows]
+
+
 def count_apps(category=None):
     conn = get_conn()
     where = "WHERE category=?" if category else ""
