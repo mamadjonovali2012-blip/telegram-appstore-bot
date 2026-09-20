@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T20:36:08.590006",
+  "exported_at": "2026-09-20T20:42:50.884736",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -15,7 +15,8 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:45:15.766327",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     },
     {
       "id": "d23adfe58b33",
@@ -30,7 +31,8 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:48:19.688446",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     },
     {
       "id": "30a3ec9595f8",
@@ -45,7 +47,8 @@
       "downloads": 1,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:50:23.333694",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     },
     {
       "id": "abcb2b7cd440",
@@ -60,7 +63,8 @@
       "downloads": 3,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:52:04.822333",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     },
     {
       "id": "d57045d473a9",
@@ -75,7 +79,8 @@
       "downloads": 1,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:54:27.664100",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     },
     {
       "id": "f8b678c3659f",
@@ -90,7 +95,8 @@
       "downloads": 1,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:57:21.491669",
-      "hidden": 0
+      "hidden": 0,
+      "is_private": 0
     }
   ],
   "versions": [
