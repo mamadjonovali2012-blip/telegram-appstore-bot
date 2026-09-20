@@ -134,11 +134,11 @@ async def cmd_delete(message: Message):
     if not is_admin(message.from_user.id):
         await message.answer(text("admin_only"))
         return
-    total = count_apps()
+    total = count_apps(only_public=False)
     if total == 0:
         await message.answer(text("no_apps"))
         return
-    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    apps = list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     await message.answer(
         f"🗑 <b>Удаление приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
         reply_markup=_delete_keyboard(apps, 0, total),
@@ -150,11 +150,11 @@ async def cmd_edit(message: Message):
     if not is_admin(message.from_user.id):
         await message.answer(text("admin_only"))
         return
-    total = count_apps()
+    total = count_apps(only_public=False)
     if total == 0:
         await message.answer(text("no_apps"))
         return
-    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    apps = list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     await message.answer(
         f"✏️ <b>Редактирование приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
         reply_markup=_edit_list_keyboard(apps, 0, total),
@@ -186,8 +186,8 @@ async def edit_page(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
     page = int(cq.data.split("_", 1)[1])
-    total = count_apps()
-    apps = list_apps(page=page, per_page=ADMIN_PER_PAGE)
+    total = count_apps(only_public=False)
+    apps = list_apps(only_public=False, page=page, per_page=ADMIN_PER_PAGE)
     total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"✏️ <b>Редактирование приложений</b> — стр. {page + 1}/{total_pages}",
@@ -244,8 +244,8 @@ async def edit_pick(cq: CallbackQuery, state: FSMContext):
 async def edit_back(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
-    total = count_apps()
-    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    total = count_apps(only_public=False)
+    apps = list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"✏️ <b>Редактирование приложений</b> — стр. 1/{total_pages}",
@@ -390,8 +390,8 @@ async def delete_page(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
     page = int(cq.data.split("_", 1)[1])
-    total = count_apps()
-    apps = list_apps(page=page, per_page=ADMIN_PER_PAGE)
+    total = count_apps(only_public=False)
+    apps = list_apps(only_public=False, page=page, per_page=ADMIN_PER_PAGE)
     total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"🗑 <b>Удаление приложений</b> — стр. {page + 1}/{total_pages}",
@@ -437,8 +437,8 @@ async def delete_info(cq: CallbackQuery):
 async def delete_back(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
-    total = count_apps()
-    apps = list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    total = count_apps(only_public=False)
+    apps = list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     total_pages = max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"🗑 <b>Удаление приложений</b> — стр. 1/{total_pages}",

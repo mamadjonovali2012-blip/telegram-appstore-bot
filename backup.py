@@ -47,12 +47,12 @@ def import_data(payload):
     cur.execute("DELETE FROM app_versions")
     for a in data.get("apps", []):
         cur.execute(
-            "INSERT OR REPLACE INTO apps (id, name, description, category, icon_emoji, version, file_id, file_name, size, downloads, added_by, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT OR REPLACE INTO apps (id, name, description, category, icon_emoji, version, file_id, file_name, size, downloads, added_by, created_at, hidden) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 a["id"], a["name"], a.get("description", ""), a.get("category", "other"),
                 a.get("icon_emoji", "📦"), a.get("version", "1.0"), a["file_id"],
                 a.get("file_name", ""), a.get("size", 0), a.get("downloads", 0),
-                a.get("added_by", 0), a.get("created_at", ""),
+                a.get("added_by", 0), a.get("created_at", ""), a.get("hidden", 0),
             ),
         )
     for v in data.get("versions", []):

@@ -10,7 +10,7 @@ from db import (
     list_apps, count_apps, find_apps, get_app, get_or_create_user,
     set_user_lang, increment_downloads, toggle_favorite, get_favorites,
     is_favorite, text, CATEGORIES, cat_name, size_mb,
-    get_versions, versions_count, get_version, list_apps_by_user,
+    get_versions, versions_count, get_version, list_apps_by_user, set_hidden,
 )
 from config import ADMIN_IDS
 
@@ -249,11 +249,23 @@ async def on_my_apps_page(cq: CallbackQuery):
 def _mine_keyboard(apps, page, total):
     kb = InlineKeyboardBuilder()
     for a in apps:
-        kb.button(
-            text=f"{a['icon_emoji']} {a['name']} (⬇️ {a['downloads']})",
-            callback_data=f"app_{a['id']}",
+        status = "🔒 Скрыто" if a.get("hidden") else "👁 Показано"
+        kb.row(
+            InlineKeyboardButton(
+                text=f"{a['icon_emoji']} {a['name']} (⬇️ {a['downloads']})",
+                callback_data=f"app_{a['id']}",
+            )
         )
-    kb.adjust(1)
+        kb.row(
+            InlineKeyboardButton(
+                text=f"{status}",
+                callback_data=f"tgl_{a['id']}",
+            ),
+            InlineKeyboardButton(
+                text="🗑",
+                callback_data=f"delconf_{a['id']}",
+            ),
+        )
     total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
     nav = []
     if page > 0:
@@ -267,6 +279,33 @@ def _mine_keyboard(apps, page, total):
         InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"),
     )
     return kb.as_markup()
+
+
+@router.callback_query(F.data.startswith("tgl_"))
+async def toggle_visible(cq: CallbackQuery):
+    if not is_admin(cq.from_user.id):
+        return
+    app_id = cq.data.split("_", 1)[1]
+    app = get_app(app_id)
+    if not app:
+        await cq.answer(text("not_found"), show_alert=True)
+        return
+    new_hidden = not app.get("hidden")
+    set_hidden(app_id, new_hidden)
+    total, apps = list_apps_by_user(cq.from_user.id, page=0, per_page=PER_PAGE)
+    if total == 0:
+        await cq.message.edit_text(
+            "📦 <b>Мои приложения</b>\n\nУ вас пока нет приложений.\nНажмите «📤 Загрузить», чтобы добавить первое.",
+            reply_markup=_mine_keyboard(apps, 0, total),
+        )
+    else:
+        await cq.message.edit_text(
+            f"📦 <b>Мои приложения</b> — {total} шт.\n\nНажмите на приложение, чтобы открыть.",
+            reply_markup=_mine_keyboard(apps, 0, total),
+        )
+    await cq.answer(
+        "🔒 Скрыто из каталога" if new_hidden else "👁 Показано в каталоге"
+    )
 
 
 @router.callback_query(F.data == "mine_upload")
@@ -320,12 +359,12 @@ async def adm_edit(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
     from handlers.admin import _edit_list_keyboard, ADMIN_PER_PAGE
-    total = count_apps()
+    total = count_apps(only_public=False)
     if total == 0:
         await cq.answer(text("no_apps"), show_alert=True)
         return
     from db import list_apps as db_list_apps
-    apps = db_list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    apps = db_list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"✏️ <b>Редактирование приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
         reply_markup=_edit_list_keyboard(apps, 0, total),
@@ -338,12 +377,12 @@ async def adm_delete(cq: CallbackQuery):
     if not is_admin(cq.from_user.id):
         return
     from handlers.admin import _delete_keyboard, ADMIN_PER_PAGE
-    total = count_apps()
+    total = count_apps(only_public=False)
     if total == 0:
         await cq.answer(text("no_apps"), show_alert=True)
         return
     from db import list_apps as db_list_apps
-    apps = db_list_apps(page=0, per_page=ADMIN_PER_PAGE)
+    apps = db_list_apps(only_public=False, page=0, per_page=ADMIN_PER_PAGE)
     await cq.message.edit_text(
         f"🗑 <b>Удаление приложений</b> — стр. 1/{max(1, (total + ADMIN_PER_PAGE - 1) // ADMIN_PER_PAGE)}",
         reply_markup=_delete_keyboard(apps, 0, total),

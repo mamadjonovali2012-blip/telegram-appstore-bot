@@ -64,10 +64,11 @@ def _init_db():
         CREATE INDEX IF NOT EXISTS idx_ver_app_id ON app_versions(app_id);
     """)
     conn.commit()
-    _migrate_versions(conn)
+    _migrate_version(conn)
+    _migrate_hidden(conn)
 
 
-def _migrate_versions(conn):
+def _migrate_version(conn):
     """Перенести текущий файл приложения в app_versions как версию 1.0, если там пусто."""
     apps = conn.execute("SELECT * FROM apps").fetchall()
     for a in apps:
@@ -80,6 +81,14 @@ def _migrate_versions(conn):
                 (a["id"], a["version"] or "1.0", a["file_id"], a["file_name"], a["size"], a["created_at"]),
             )
     conn.commit()
+
+
+def _migrate_hidden(conn):
+    """Добавить колонку hidden, если её нет (старые базы)."""
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(apps)").fetchall()]
+    if "hidden" not in cols:
+        conn.execute("ALTER TABLE apps ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
 
 
 CATEGORIES = {
@@ -114,12 +123,19 @@ def get_app(app_id):
     return dict(row) if row else None
 
 
-def list_apps(category=None, sort="new", page=0, per_page=10):
+def list_apps(category=None, sort="new", page=0, per_page=10, only_public=True):
     conn = get_conn()
-    where = "WHERE category=?" if category else ""
+    where = []
+    params = []
+    if category:
+        where.append("category=?")
+        params.append(category)
+    if only_public:
+        where.append("COALESCE(hidden,0)=0")
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
     order = "created_at DESC" if sort == "new" else "downloads DESC"
-    sql = f"SELECT * FROM apps {where} ORDER BY {order} LIMIT ? OFFSET ?"
-    params = ([category] if category else []) + [per_page, page * per_page]
+    sql = f"SELECT * FROM apps {where_sql} ORDER BY {order} LIMIT ? OFFSET ?"
+    params += [per_page, page * per_page]
     rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
 
@@ -139,22 +155,38 @@ def list_apps_by_user(user_id, page=0, per_page=10):
     return total, [dict(r) for r in rows]
 
 
-def count_apps(category=None):
+def count_apps(category=None, only_public=True):
     conn = get_conn()
-    where = "WHERE category=?" if category else ""
-    params = [category] if category else []
-    return conn.execute(f"SELECT COUNT(*) FROM apps {where}", params).fetchone()[0]
+    where = []
+    params = []
+    if category:
+        where.append("category=?")
+        params.append(category)
+    if only_public:
+        where.append("COALESCE(hidden,0)=0")
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+    return conn.execute(f"SELECT COUNT(*) FROM apps {where_sql}", params).fetchone()[0]
 
 
-def find_apps(query, page=0, per_page=10):
+def find_apps(query, page=0, per_page=10, only_public=True):
     conn = get_conn()
     like = f"%{query}%"
-    total = conn.execute("SELECT COUNT(*) FROM apps WHERE name LIKE ? OR description LIKE ?", (like, like)).fetchone()[0]
+    where = "WHERE (name LIKE ? OR description LIKE ?)"
+    params = [like, like]
+    if only_public:
+        where += " AND COALESCE(hidden,0)=0"
+    total = conn.execute(f"SELECT COUNT(*) FROM apps {where}", params).fetchone()[0]
     rows = conn.execute(
-        "SELECT * FROM apps WHERE name LIKE ? OR description LIKE ? ORDER BY downloads DESC LIMIT ? OFFSET ?",
-        (like, like, per_page, page * per_page),
+        f"SELECT * FROM apps {where} ORDER BY downloads DESC LIMIT ? OFFSET ?",
+        params + [per_page, page * per_page],
     ).fetchall()
     return total, [dict(r) for r in rows]
+
+
+def set_hidden(app_id, hidden):
+    conn = get_conn()
+    conn.execute("UPDATE apps SET hidden=? WHERE id=?", (1 if hidden else 0, app_id))
+    conn.commit()
 
 
 def increment_downloads(app_id):
