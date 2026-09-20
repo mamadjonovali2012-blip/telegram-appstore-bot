@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T08:51:15.691934",
+  "exported_at": "2026-09-20T08:56:16.618443",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -43,6 +43,34 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:50:23.333694"
+    },
+    {
+      "id": "abcb2b7cd440",
+      "name": "Noor-Quran",
+      "description": "Это мобильное приложение с Кораном, достоверными сборниками хадисов, ИИ помощником и т.д.",
+      "category": "education",
+      "icon_emoji": "📖",
+      "version": "1.4.0",
+      "file_id": "BQACAgIAAxkBAAIDGWqvnrS_RRo3fUDvWD1C_G0tgX71AALruwADmoBJ4RytnuepcMM9BA",
+      "file_name": "Нур-v1.4.0.apk",
+      "size": 14336364,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:52:04.822333"
+    },
+    {
+      "id": "d57045d473a9",
+      "name": "Sterka",
+      "description": "Это приложение для изменения фотографий",
+      "category": "tools",
+      "icon_emoji": "✏️",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDJWqvn0NBhURu-WP0xn9UgW1hM3_fAAL3uwADmoBJjc3Cekf8VMk9BA",
+      "file_name": "sterka.apk",
+      "size": 6599349,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:54:27.664100"
     }
   ],
   "versions": [],
