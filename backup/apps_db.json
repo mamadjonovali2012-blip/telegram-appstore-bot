@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T09:36:24.967902",
+  "exported_at": "2026-09-20T09:41:26.110926",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -36,9 +36,9 @@
       "description": "Это мобильное приложение для андроид с исламскими мультиками.",
       "category": "education",
       "icon_emoji": "☾⋆",
-      "version": "1.2.3",
-      "file_id": "BQACAgIAAxkBAAIDDWqvnk9d97cqmUclyGfPJLemrOJQAALfuwADmoBJ0s42v5EkMEM9BA",
-      "file_name": "ProphetCartoons-1.2.3.apk",
+      "version": "1.1.0",
+      "file_id": "BQACAgIAAxkBAAIDcWqvqWBT3gABxJQzn_8WoXTn7cOnFwACdLwAA5qAScAEpgGmigEqPQQ",
+      "file_name": "ProphetCartoons-1.1.0.apk",
       "size": 29542,
       "downloads": 0,
       "added_by": 8542930176,
@@ -159,6 +159,15 @@
       "file_name": "PhoneTest-v1.0.0.apk",
       "size": 56901916,
       "created_at": "2026-09-20T09:09:10.488090"
+    },
+    {
+      "id": 9,
+      "app_id": "30a3ec9595f8",
+      "version": "1.1.0",
+      "file_id": "BQACAgIAAxkBAAIDcWqvqWBT3gABxJQzn_8WoXTn7cOnFwACdLwAA5qAScAEpgGmigEqPQQ",
+      "file_name": "ProphetCartoons-1.1.0.apk",
+      "size": 29542,
+      "created_at": "2026-09-20T09:37:37.104926"
     }
   ],
   "users": [
