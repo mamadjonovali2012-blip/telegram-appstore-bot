@@ -223,14 +223,12 @@ async def on_my_apps(cq: CallbackQuery):
         return
     user = get_or_create_user(cq.from_user.id)
     total, apps = list_apps_by_user(cq.from_user.id, page=0, per_page=PER_PAGE)
-    if total == 0:
-        await cq.answer("😕 У вас пока нет приложений.", show_alert=True)
-        return
     kb = _mine_keyboard(apps, 0, total)
-    await cq.message.edit_text(
-        f"📦 <b>Мои приложения</b> — {total} шт.\n\nНажмите на приложение, чтобы открыть.",
-        reply_markup=kb,
-    )
+    if total == 0:
+        text_mine = "📦 <b>Мои приложения</b>\n\nУ вас пока нет приложений.\nНажмите «📤 Загрузить», чтобы добавить первое."
+    else:
+        text_mine = f"📦 <b>Мои приложения</b> — {total} шт.\n\nНажмите на приложение, чтобы открыть."
+    await cq.message.edit_text(text_mine, reply_markup=kb)
     await cq.answer()
 
 
@@ -264,8 +262,21 @@ def _mine_keyboard(apps, page, total):
         nav.append(InlineKeyboardButton(text="➡️", callback_data=f"minepage_{page + 1}"))
     if nav:
         kb.row(*nav)
-    kb.row(InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"))
+    kb.row(
+        InlineKeyboardButton(text="📤 Загрузить приложение", callback_data="mine_upload"),
+        InlineKeyboardButton(text="⬅️ Назад", callback_data="main_menu"),
+    )
     return kb.as_markup()
+
+
+@router.callback_query(F.data == "mine_upload")
+async def mine_upload(cq: CallbackQuery, state: FSMContext):
+    if not is_admin(cq.from_user.id):
+        return
+    from handlers.admin import UploadState
+    await state.set_state(UploadState.name)
+    await cq.message.edit_text(text("upload_name"))
+    await cq.answer()
 
 
 # --- Admin control panel ---
