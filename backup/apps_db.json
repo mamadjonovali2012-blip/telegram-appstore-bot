@@ -1,8 +1,29 @@
 {
   "version": 2,
-  "exported_at": "2026-09-20T08:41:40.623203",
-  "apps": [],
+  "exported_at": "2026-09-20T08:46:14.733901",
+  "apps": [
+    {
+      "id": "f83645e0d146",
+      "name": "Aurora Browser",
+      "description": "Браузер для андроид, простенький, работает на поисковике от гугла.",
+      "category": "tools",
+      "icon_emoji": "🌐",
+      "version": "2.4.0",
+      "file_id": "BQACAgIAAxkBAAIC9WqvnRseC4D6F3f2U-ip1WfmS-0RAALAuwADmoBJ3gABXb8TfxqcPQQ",
+      "file_name": "Aurora_v2.4.0.apk",
+      "size": 6663336,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:45:15.766327"
+    }
+  ],
   "versions": [],
-  "users": [],
+  "users": [
+    {
+      "id": 8542930176,
+      "lang": "ru",
+      "joined_at": "2026-09-20T08:42:38.481203"
+    }
+  ],
   "favorites": []
 }
