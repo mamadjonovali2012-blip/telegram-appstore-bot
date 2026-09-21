@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-21T05:39:47.295742",
+  "exported_at": "2026-09-21T05:44:48.347780",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -97,6 +97,22 @@
       "created_at": "2026-09-20T08:57:21.491669",
       "hidden": 0,
       "is_private": 0
+    },
+    {
+      "id": "12867c012c3c",
+      "name": "AliLauncher",
+      "description": "Лаунчер",
+      "category": "tools",
+      "icon_emoji": "⏯️",
+      "version": "1.1.0",
+      "file_id": "BQACAgIAAxkBAAIDxGqww0mJZUPZH-oDry5M01LuTZUPAAJBpQACyc6ISaYTJverrTKxPQQ",
+      "file_name": "AliLauncher.exe",
+      "size": 186292736,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-21T05:40:25.390614",
+      "hidden": 0,
+      "is_private": 1
     }
   ],
   "versions": [
