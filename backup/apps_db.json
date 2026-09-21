@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-21T11:56:13.566532",
+  "exported_at": "2026-09-21T12:01:14.934385",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -111,6 +111,22 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-21T05:40:25.390614",
+      "hidden": 0,
+      "is_private": 1
+    },
+    {
+      "id": "ff2138fcb046",
+      "name": "AIcraft",
+      "description": "...",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID1mqxHBoFSCKHcoqCCrIfBLsqCH1NAAKCngACyc6QSeFegW5aIgZ5PQQ",
+      "file_name": "AIcraft.exe",
+      "size": 223073280,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-21T11:59:22.540410",
       "hidden": 0,
       "is_private": 1
     }
