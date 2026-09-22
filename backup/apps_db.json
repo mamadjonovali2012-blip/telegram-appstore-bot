@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-22T07:28:56.500326",
+  "exported_at": "2026-09-22T07:33:57.805328",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -127,6 +127,22 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-21T11:59:22.540410",
+      "hidden": 0,
+      "is_private": 1
+    },
+    {
+      "id": "bd731e0d3686",
+      "name": "Simulator Shop",
+      "description": "...",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID5GqyLmaa3fCFx45UwE_TbNH4eRFaAAITmAACC7CRSdL1IcxE_a3jPQQ",
+      "file_name": "FashionEmpire3D.apk",
+      "size": 271332,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-22T07:29:42.926138",
       "hidden": 0,
       "is_private": 1
     }
