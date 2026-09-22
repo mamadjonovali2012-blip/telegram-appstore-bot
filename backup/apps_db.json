@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-09-22T19:01:59.987332",
+  "exported_at": "2026-09-22T19:07:01.463270",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -145,6 +145,22 @@
       "created_at": "2026-09-22T07:29:42.926138",
       "hidden": 0,
       "is_private": 1
+    },
+    {
+      "id": "9c457be52dc8",
+      "name": "Aura",
+      "description": "...",
+      "category": "productivity",
+      "icon_emoji": "⚡",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID-Gqy0cwWXRfZCxA-Ya59duZFBL9OAAJroAACC7CRSSzWDTVrgM00PQQ",
+      "file_name": "АУРА (1).apk",
+      "size": 49685122,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-22T19:06:52.672844",
+      "hidden": 0,
+      "is_private": 0
     }
   ],
   "versions": [
