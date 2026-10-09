@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-10-09T06:10:28.405794",
+  "exported_at": "2026-10-09T06:15:29.744804",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -159,6 +159,22 @@
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-22T19:06:52.672844",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "cd282d32b4e0",
+      "name": "CookiPow",
+      "description": "Приложение в котором можно посмотреть рецепты блюд, добавлять свои и т.д.",
+      "category": "social",
+      "icon_emoji": "🍪",
+      "version": "10.0.0",
+      "file_id": "BQACAgIAAxkBAAIEHGrIhnklEjGYyVpZD8D_UiIV4qobAAIWmgACgJBJSpfTOb6Ui8VyPQQ",
+      "file_name": "CookiPow (1).apk",
+      "size": 7562812,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-10-09T06:15:21.694676",
       "hidden": 0,
       "is_private": 0
     }
