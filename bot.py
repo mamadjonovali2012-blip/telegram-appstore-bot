@@ -8,7 +8,7 @@ from aiogram.client.session.aiohttp import AiohttpSession
 
 from aiohttp import web
 
-from config import BOT_TOKEN, PROXY, ADMIN_IDS
+from config import BOT_TOKEN, PROXY, ADMIN_IDS, WEBAPP_URL
 from backup import restore_backup, backup_loop
 from handlers import admin, common, user
 from admin_api import setup_admin_api
@@ -49,6 +49,13 @@ async def set_commands(bot: Bot):
             await bot.set_my_commands(
                 admin_commands,
                 scope=types.BotCommandScopeChat(chat_id=admin_id),
+            )
+            await bot.set_chat_menu_button(
+                chat_id=admin_id,
+                menu_button=types.MenuButtonWebApp(
+                    text="⚙️ Панель админа",
+                    web_app=types.WebAppInfo(url=WEBAPP_URL),
+                ),
             )
         except Exception as e:
             logging.warning("Failed to set admin commands for %s: %s", admin_id, e)
