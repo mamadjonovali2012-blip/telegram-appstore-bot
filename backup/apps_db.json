@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exported_at": "2026-10-16T17:46:34.313803",
+  "exported_at": "2026-10-16T17:51:35.422801",
   "apps": [
     {
       "id": "f83645e0d146",
@@ -44,7 +44,7 @@
       "file_id": "BQACAgIAAxkBAAIDh2qvyo2BuLi8bhzRnIqtz41wkm8qAAJrpgACyc6ASbwWZ7OJO3yIPQQ",
       "file_name": "ProphetCartoons-1.2.3.apk",
       "size": 29542,
-      "downloads": 1,
+      "downloads": 2,
       "added_by": 8542930176,
       "created_at": "2026-09-20T08:50:23.333694",
       "hidden": 0,
@@ -104,10 +104,10 @@
       "description": "Лаунчер",
       "category": "tools",
       "icon_emoji": "⏯️",
-      "version": "2.0.0",
-      "file_id": "BQACAgIAAxkBAAID6mqyjklT2_cBjnjumXZ2GZYqpEe2AALDnAACC7CRSce9c0xzcOGdPQQ",
-      "file_name": "AliLauncher-Portable (1).zip",
-      "size": 113079441,
+      "version": "7.13.0",
+      "file_id": "BQACAgIAAxkBAAIEWmrSY_8kdxye3YTo40RZl5hgepdZAAIGqgAC_i2ZSmcT9sn4swrbPQQ",
+      "file_name": "AliLauncher-Linux-x64.tar.gz",
+      "size": 111091456,
       "downloads": 0,
       "added_by": 8542930176,
       "created_at": "2026-09-21T05:40:25.390614",
@@ -287,6 +287,15 @@
       "file_name": "CookiPow.apk",
       "size": 7565144,
       "created_at": "2026-10-12T06:26:03.918074"
+    },
+    {
+      "id": 13,
+      "app_id": "12867c012c3c",
+      "version": "7.13.0",
+      "file_id": "BQACAgIAAxkBAAIEWmrSY_8kdxye3YTo40RZl5hgepdZAAIGqgAC_i2ZSmcT9sn4swrbPQQ",
+      "file_name": "AliLauncher-Linux-x64.tar.gz",
+      "size": 111091456,
+      "created_at": "2026-10-16T17:50:56.109681"
     }
   ],
   "users": [
