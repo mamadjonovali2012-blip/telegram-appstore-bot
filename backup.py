@@ -77,15 +77,53 @@ def import_data(payload):
     conn.commit()
 
 
-async def _github_api(method, url, token, payload=None):
+BACKUP_BRANCH = os.getenv("BACKUP_BRANCH", "backup")
+
+
+async def _github_api(method, url, token, payload=None, headers_extra=None):
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json",
     }
+    if headers_extra:
+        headers.update(headers_extra)
     timeout = aiohttp.ClientTimeout(total=15)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.request(method, url, headers=headers, json=payload) as resp:
             return resp.status, await resp.text()
+
+
+def _parse_sha(body):
+    try:
+        return json.loads(body).get("sha")
+    except Exception:
+        return None
+
+
+async def _ensure_backup_branch(repo, token):
+    """Создать ветку backup от master, если её нет. Вернуть sha HEAD ветки."""
+    # Проверить ветку
+    url = f"https://api.github.com/repos/{repo}/branches/{BACKUP_BRANCH}"
+    status, body = await _github_api("GET", url, token)
+    if status == 200:
+        return _parse_sha(body)
+    if status != 404:
+        logging.warning("Check backup branch HTTP %s: %s", status, body[:200])
+        return None
+    # Ветки нет — получить HEAD master
+    m_url = f"https://api.github.com/repos/{repo}/branches/master"
+    m_status, m_body = await _github_api("GET", m_url, token)
+    if m_status != 200:
+        return None
+    master_sha = _parse_sha(m_body)
+    ref_payload = {"ref": f"refs/heads/{BACKUP_BRANCH}", "sha": master_sha}
+    create_status, create_body = await _github_api(
+        "POST", f"https://api.github.com/repos/{repo}/git/refs", token, ref_payload
+    )
+    if create_status not in (201, 200):
+        logging.warning("Create backup branch HTTP %s: %s", create_status, create_body[:200])
+        return None
+    return master_sha
 
 
 async def push_backup():
@@ -94,20 +132,17 @@ async def push_backup():
     if not token or not repo:
         logging.warning("GITHUB_TOKEN/GITHUB_REPO не заданы — бэкап отключён")
         return False
+    await _ensure_backup_branch(repo, token)
     content = export_data()
     encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-    url = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    api = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    url = f"{api}?ref={BACKUP_BRANCH}"
     status, body = await _github_api("GET", url, token)
-    sha = None
-    if status == 200:
-        try:
-            sha = json.loads(body)["sha"]
-        except Exception:
-            pass
-    payload = {"message": f"backup {datetime.utcnow().isoformat()}", "content": encoded}
+    sha = _parse_sha(body)
+    payload = {"message": f"backup {datetime.utcnow().isoformat()}", "content": encoded, "branch": BACKUP_BRANCH}
     if sha:
         payload["sha"] = sha
-    put_status, _ = await _github_api("PUT", url, token, payload)
+    put_status, put_body = await _github_api("PUT", api, token, payload)
     logging.info("Backup push: HTTP %s", put_status)
     return put_status in (200, 201)
 
@@ -117,7 +152,8 @@ async def restore_backup():
     repo = _github_repo()
     if not token or not repo:
         return False
-    url = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    api = f"https://api.github.com/repos/{repo}/contents/{GITHUB_PATH}"
+    url = f"{api}?ref={BACKUP_BRANCH}"
     status, body = await _github_api("GET", url, token)
     if status != 200:
         logging.info("Backup not found on GitHub, starting fresh")
