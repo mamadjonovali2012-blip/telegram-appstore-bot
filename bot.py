@@ -11,6 +11,7 @@ from aiohttp import web
 from config import BOT_TOKEN, PROXY, ADMIN_IDS
 from backup import restore_backup, backup_loop
 from handlers import admin, common, user
+from admin_api import setup_admin_api
 
 logging.basicConfig(level=logging.INFO)
 
@@ -60,6 +61,23 @@ async def main():
     app = web.Application()
     app.router.add_get("/", health)
     app.router.add_get("/version", version)
+    setup_admin_api(app)
+
+    @web.middleware
+    async def cors_middleware(request, handler):
+        if request.path.startswith("/admin-api/"):
+            if request.method == "OPTIONS":
+                resp = web.Response(status=204)
+            else:
+                resp = await handler(request)
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+            return resp
+        return await handler(request)
+
+    app.middlewares.append(cors_middleware)
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
