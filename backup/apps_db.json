@@ -1,0 +1,340 @@
+{
+  "version": 2,
+  "exported_at": "2026-10-16T13:55:27.365756",
+  "apps": [
+    {
+      "id": "f83645e0d146",
+      "name": "Aurora Browser",
+      "description": "Браузер для андроид, простенький, работает на поисковике от гугла.",
+      "category": "tools",
+      "icon_emoji": "🌐",
+      "version": "1.5.0",
+      "file_id": "BQACAgIAAxkBAAIDRmqvoUQ8hcJ_nH7F2hKSNiXbT5sOAAIZvAADmoBJzGElUq94s289BA",
+      "file_name": "Aurora_v1.5.0.apk",
+      "size": 6655528,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:45:15.766327",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "d23adfe58b33",
+      "name": "PhoneTest",
+      "description": "Это приложение для проверки телефона(Вибрация, фонарик и т.д.)",
+      "category": "tools",
+      "icon_emoji": "📲",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDZmqvorZHRK7xHpEk5uRlAWjSMktjAAIzvAADmoBJvZzwNEJzf7s9BA",
+      "file_name": "PhoneTest-v1.0.0.apk",
+      "size": 56901916,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:48:19.688446",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "30a3ec9595f8",
+      "name": "IslamCartoon",
+      "description": "Это мобильное приложение для андроид с исламскими мультиками.",
+      "category": "education",
+      "icon_emoji": "☾⋆",
+      "version": "1.2.3",
+      "file_id": "BQACAgIAAxkBAAIDh2qvyo2BuLi8bhzRnIqtz41wkm8qAAJrpgACyc6ASbwWZ7OJO3yIPQQ",
+      "file_name": "ProphetCartoons-1.2.3.apk",
+      "size": 29542,
+      "downloads": 1,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:50:23.333694",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "abcb2b7cd440",
+      "name": "Noor-Quran",
+      "description": "Это мобильное приложение с Кораном, достоверными сборниками хадисов, ИИ помощником и т.д.",
+      "category": "education",
+      "icon_emoji": "📖",
+      "version": "2.0.1",
+      "file_id": "BQACAgIAAxkBAAID_Gqy0ij6C9SkOrQDEsizKrXGL5KBAAJvoAACC7CRSaNcn-KJjfDlPQQ",
+      "file_name": "Нур — Коран и Хадисы.apk",
+      "size": 14348223,
+      "downloads": 3,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:52:04.822333",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "d57045d473a9",
+      "name": "Sterka",
+      "description": "Это приложение для изменения фотографий",
+      "category": "tools",
+      "icon_emoji": "✏️",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDJWqvn0NBhURu-WP0xn9UgW1hM3_fAAL3uwADmoBJjc3Cekf8VMk9BA",
+      "file_name": "sterka.apk",
+      "size": 6599349,
+      "downloads": 3,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:54:27.664100",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "f8b678c3659f",
+      "name": "SimCo",
+      "description": "Это мобильная игра про корпорацию",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "7",
+      "file_id": "BQACAgIAAxkBAAIDMWqvn_G6rHFkZ2gdOgABdEbxOj6_sAACB7wAA5qASaVe5EFoIM0LPQQ",
+      "file_name": "SimCo-v7.apk",
+      "size": 324445,
+      "downloads": 3,
+      "added_by": 8542930176,
+      "created_at": "2026-09-20T08:57:21.491669",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "12867c012c3c",
+      "name": "AliLauncher",
+      "description": "Лаунчер",
+      "category": "tools",
+      "icon_emoji": "⏯️",
+      "version": "2.0.0",
+      "file_id": "BQACAgIAAxkBAAID6mqyjklT2_cBjnjumXZ2GZYqpEe2AALDnAACC7CRSce9c0xzcOGdPQQ",
+      "file_name": "AliLauncher-Portable (1).zip",
+      "size": 113079441,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-21T05:40:25.390614",
+      "hidden": 0,
+      "is_private": 1
+    },
+    {
+      "id": "ff2138fcb046",
+      "name": "AIcraft",
+      "description": "...",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID1mqxHBoFSCKHcoqCCrIfBLsqCH1NAAKCngACyc6QSeFegW5aIgZ5PQQ",
+      "file_name": "AIcraft.exe",
+      "size": 223073280,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-21T11:59:22.540410",
+      "hidden": 0,
+      "is_private": 1
+    },
+    {
+      "id": "bd731e0d3686",
+      "name": "Simulator Shop",
+      "description": "...",
+      "category": "games",
+      "icon_emoji": "🎮",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID5GqyLmaa3fCFx45UwE_TbNH4eRFaAAITmAACC7CRSdL1IcxE_a3jPQQ",
+      "file_name": "FashionEmpire3D.apk",
+      "size": 271332,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-22T07:29:42.926138",
+      "hidden": 0,
+      "is_private": 1
+    },
+    {
+      "id": "9c457be52dc8",
+      "name": "Aura",
+      "description": "...",
+      "category": "productivity",
+      "icon_emoji": "⚡",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAID-Gqy0cwWXRfZCxA-Ya59duZFBL9OAAJroAACC7CRSSzWDTVrgM00PQQ",
+      "file_name": "АУРА (1).apk",
+      "size": 49685122,
+      "downloads": 0,
+      "added_by": 8542930176,
+      "created_at": "2026-09-22T19:06:52.672844",
+      "hidden": 0,
+      "is_private": 0
+    },
+    {
+      "id": "cd282d32b4e0",
+      "name": "CookiPow",
+      "description": "Приложение в котором можно посмотреть рецепты блюд, добавлять свои и т.д.",
+      "category": "social",
+      "icon_emoji": "🍪",
+      "version": "10.1.3",
+      "file_id": "BQACAgIAAxkBAAIELGrMfXvFVXnEdBYAAfBlFVY86Jp-4gACSrAAAhaeYEpuGo8CK1nYuj0E",
+      "file_name": "CookiPow.apk",
+      "size": 7565144,
+      "downloads": 1,
+      "added_by": 8542930176,
+      "created_at": "2026-10-09T06:15:21.694676",
+      "hidden": 0,
+      "is_private": 0
+    }
+  ],
+  "versions": [
+    {
+      "id": 1,
+      "app_id": "f83645e0d146",
+      "version": "2.3.5",
+      "file_id": "BQACAgIAAxkBAAIDOWqvoLo1gWnwO2L1mrW9CgYJZAIEAAIOvAADmoBJNPxlVdBqWi89BA",
+      "file_name": "Aurora_v2.3.5.apk",
+      "size": 6662892,
+      "created_at": "2026-09-20T09:00:42.750817"
+    },
+    {
+      "id": 2,
+      "app_id": "f83645e0d146",
+      "version": "2.1.5",
+      "file_id": "BQACAgIAAxkBAAIDP2qvoRN-DEHOcaWXbP0F150QoGSnAAIUvAADmoBJTRk9XRBxyMY9BA",
+      "file_name": "Aurora_v2.1.5.apk",
+      "size": 6659852,
+      "created_at": "2026-09-20T09:02:11.521836"
+    },
+    {
+      "id": 3,
+      "app_id": "f83645e0d146",
+      "version": "1.5.0",
+      "file_id": "BQACAgIAAxkBAAIDRmqvoUQ8hcJ_nH7F2hKSNiXbT5sOAAIZvAADmoBJzGElUq94s289BA",
+      "file_name": "Aurora_v1.5.0.apk",
+      "size": 6655528,
+      "created_at": "2026-09-20T09:03:01.056130"
+    },
+    {
+      "id": 4,
+      "app_id": "d23adfe58b33",
+      "version": "4.5.3",
+      "file_id": "BQACAgIAAxkBAAIDTmqvoYnl_ZevXpiNkdhwcS8LKRtRAAIfvAADmoBJB_kfomsAAQbTPQQ",
+      "file_name": "PhoneTest-v4.5.3.apk",
+      "size": 56901920,
+      "created_at": "2026-09-20T09:04:09.945747"
+    },
+    {
+      "id": 5,
+      "app_id": "d23adfe58b33",
+      "version": "3.0.0",
+      "file_id": "BQACAgIAAxkBAAIDVGqvocfu1YAHGMcbBp7Vi_1PoTOEAAIjvAADmoBJ9RhZgJk1g-09BA",
+      "file_name": "PhoneTest-v3.0.0.apk",
+      "size": 56901920,
+      "created_at": "2026-09-20T09:05:12.123003"
+    },
+    {
+      "id": 6,
+      "app_id": "d23adfe58b33",
+      "version": "2.2.2",
+      "file_id": "BQACAgIAAxkBAAIDWmqvoiPyR6NZPU0hUFGMsIoJaeEyAAInvAADmoBJMlXlvT_c_Ok9BA",
+      "file_name": "PhoneTest-v2.2.2.apk",
+      "size": 20463131,
+      "created_at": "2026-09-20T09:06:44.162676"
+    },
+    {
+      "id": 7,
+      "app_id": "d23adfe58b33",
+      "version": "2.0.0",
+      "file_id": "BQACAgIAAxkBAAIDYGqvoowPJqb_HO3IX9kvEaT6WX_WAAIvvAADmoBJ7su_vgVGj-U9BA",
+      "file_name": "PhoneTest-v2.0.0.apk",
+      "size": 56901920,
+      "created_at": "2026-09-20T09:08:28.756064"
+    },
+    {
+      "id": 8,
+      "app_id": "d23adfe58b33",
+      "version": "1.0.0",
+      "file_id": "BQACAgIAAxkBAAIDZmqvorZHRK7xHpEk5uRlAWjSMktjAAIzvAADmoBJvZzwNEJzf7s9BA",
+      "file_name": "PhoneTest-v1.0.0.apk",
+      "size": 56901916,
+      "created_at": "2026-09-20T09:09:10.488090"
+    },
+    {
+      "id": 9,
+      "app_id": "30a3ec9595f8",
+      "version": "1.1.0",
+      "file_id": "BQACAgIAAxkBAAIDcWqvqWBT3gABxJQzn_8WoXTn7cOnFwACdLwAA5qAScAEpgGmigEqPQQ",
+      "file_name": "ProphetCartoons-1.1.0.apk",
+      "size": 29542,
+      "created_at": "2026-09-20T09:37:37.104926"
+    },
+    {
+      "id": 10,
+      "app_id": "12867c012c3c",
+      "version": "2.0.0",
+      "file_id": "BQACAgIAAxkBAAID6mqyjklT2_cBjnjumXZ2GZYqpEe2AALDnAACC7CRSce9c0xzcOGdPQQ",
+      "file_name": "AliLauncher-Portable (1).zip",
+      "size": 113079441,
+      "created_at": "2026-09-22T14:18:50.127570"
+    },
+    {
+      "id": 11,
+      "app_id": "abcb2b7cd440",
+      "version": "2.0.1",
+      "file_id": "BQACAgIAAxkBAAID_Gqy0ij6C9SkOrQDEsizKrXGL5KBAAJvoAACC7CRSaNcn-KJjfDlPQQ",
+      "file_name": "Нур — Коран и Хадисы.apk",
+      "size": 14348223,
+      "created_at": "2026-09-22T19:08:24.863413"
+    },
+    {
+      "id": 12,
+      "app_id": "cd282d32b4e0",
+      "version": "10.1.3",
+      "file_id": "BQACAgIAAxkBAAIELGrMfXvFVXnEdBYAAfBlFVY86Jp-4gACSrAAAhaeYEpuGo8CK1nYuj0E",
+      "file_name": "CookiPow.apk",
+      "size": 7565144,
+      "created_at": "2026-10-12T06:26:03.918074"
+    }
+  ],
+  "users": [
+    {
+      "id": 835648334,
+      "lang": "ru",
+      "joined_at": "2026-10-01T17:19:51.788430"
+    },
+    {
+      "id": 1319427725,
+      "lang": "ru",
+      "joined_at": "2026-10-13T09:16:48.278436"
+    },
+    {
+      "id": 1843283558,
+      "lang": "ru",
+      "joined_at": "2026-09-20T11:55:45.170837"
+    },
+    {
+      "id": 6396320637,
+      "lang": "ru",
+      "joined_at": "2026-09-21T06:17:34.165200"
+    },
+    {
+      "id": 8167593978,
+      "lang": "en",
+      "joined_at": "2026-10-08T21:52:41.749830"
+    },
+    {
+      "id": 8542930176,
+      "lang": "ru",
+      "joined_at": "2026-09-20T08:42:38.481203"
+    },
+    {
+      "id": 8665401980,
+      "lang": "en",
+      "joined_at": "2026-10-04T05:54:09.383117"
+    },
+    {
+      "id": 8866177990,
+      "lang": "ru",
+      "joined_at": "2026-10-12T06:23:40.612269"
+    }
+  ],
+  "favorites": [
+    {
+      "user_id": 8665401980,
+      "app_id": "d57045d473a9"
+    }
+  ]
+}
