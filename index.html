@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Панель админа</title>
+<style>
+  :root { --bg:#ffffff; --card:#f4f4f5; --text:#18181b; --muted:#71717a; --accent:#4f46e5; --border:#e4e4e7; }
+  * { box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  body { margin:0; padding:0; background:var(--bg); color:var(--text); }
+  .container { max-width:720px; margin:0 auto; padding:12px; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:8px 0 12px; }
+  h1 { font-size:20px; margin:0; }
+  .btn { border:none; border-radius:10px; padding:10px 14px; font-size:14px; cursor:pointer; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-danger { background:#ef4444; color:#fff; }
+  .btn-small { padding:6px 10px; font-size:12px; }
+  .card { background:var(--card); border-radius:12px; padding:14px; margin-bottom:10px; display:flex; align-items:center; }
+  .card .icon { font-size:28px; margin-right:12px; }
+  .card .info { flex:1; }
+  .card .name { font-weight:600; }
+  .card .meta { color:var(--muted); font-size:12px; margin-top:2px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+  .badge-hidden { background:#fef3c7; color:#92400e; }
+  .badge-visible { background:#d1fae5; color:#065f46; }
+  #stats { display:flex; gap:10px; margin-bottom:12px; }
+  .stat { flex:1; background:var(--card); border-radius:10px; padding:10px; text-align:center; }
+  .stat .num { font-size:22px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--muted); }
+  .error { color:#dc2626; text-align:center; padding:20px; }
+  .loading { text-align:center; padding:40px; color:var(--muted); }
+  .actions { display:flex; gap:6px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚙️ Панель админа</h1>
+    <span id="userLabel" style="color:var(--muted);font-size:12px;"></span>
+  </header>
+  <div id="stats"></div>
+  <div id="content"><div class="loading">Загрузка...</div></div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+let INIT_DATA = "";
+
+const API_BASE = "https://telegram-appstore-bot.onrender.com";
+
+function init() {
+  if (!window.Telegram || !window.Telegram.WebApp) {
+    document.getElementById("content").innerHTML =
+      '<div class="error">Откройте через кнопку в боте Telegram</div>';
+    return;
+  }
+  const wa = window.Telegram.WebApp;
+  wa.ready();
+  wa.expand();
+  INIT_DATA = wa.initData || "";
+  const user = wa.initDataUnsafe && wa.initDataUnsafe.user;
+  if (user) {
+    document.getElementById("userLabel").textContent = user.first_name || user.username || "";
+  }
+  refresh();
+}
+
+async function api(path, method = "GET", body = null) {
+  const opts = { method, headers: {} };
+  if (INIT_DATA) {
+    opts.headers["Authorization"] = "initData " + INIT_DATA;
+  }
+  if (body) {
+    opts.headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+  const resp = await fetch(API_BASE + path, opts);
+  const data = await resp.json();
+  if (!resp.ok || !data.ok) {
+    throw new Error(data.error || ("HTTP " + resp.status));
+  }
+  return data;
+}
+
+function renderStats(s) {
+  document.getElementById("stats").innerHTML =
+    '<div class="stat"><div class="num">' + s.apps + '</div><div class="label">Приложений</div></div>' +
+    '<div class="stat"><div class="num">' + s.downloads + '</div><div class="label">Скачиваний</div></div>' +
+    '<div class="stat"><div class="num">' + s.users + '</div><div class="label">Пользователей</div></div>';
+}
+
+function renderApps(apps) {
+  const el = document.getElementById("content");
+  if (!apps.length) {
+    el.innerHTML = '<div class="loading">Приложений нет</div>';
+    return;
+  }
+  const mainApps = apps.filter(a => !a.is_private);
+  const privateApps = apps.filter(a => a.is_private);
+  let html = "";
+  if (mainApps.length) html += '<h3 style="font-size:15px;margin:12px 0 8px;">📦 Каталог</h3>';
+  mainApps.forEach(a => html += appCard(a));
+  if (privateApps.length) html += '<h3 style="font-size:15px;margin:12px 0 8px;">🔒 Личное</h3>';
+  privateApps.forEach(a => html += appCard(a));
+  el.innerHTML = html;
+  mainApps.forEach(a => bindAppActions(a));
+  privateApps.forEach(a => bindAppActions(a));
+}
+
+function appCard(a) {
+  const badge = a.hidden
+    ? '<span class="badge badge-hidden">🔒 Скрыто</span>'
+    : '<span class="badge badge-visible">👁 Видно</span>';
+  const cat = a.icon_emoji || "📦";
+  return (
+    '<div class="card" id="app-' + a.id + '">' +
+      '<div class="icon">' + cat + '</div>' +
+      '<div class="info">' +
+        '<div class="name">' + escapeHtml(a.name) + (a.is_private ? ' 🔒' : '') + '</div>' +
+        '<div class="meta">v' + escapeHtml(a.version) + ' · ' + a.downloads + '⬇️ · ' + escapeHtml(a.file_name) + '</div>' +
+        '<div style="margin-top:6px;">' + badge + '</div>' +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="btn btn-small btn-primary" data-toggle="' + a.id + '">' + (a.hidden ? 'Показать' : 'Скрыть') + '</button>' +
+        '<button class="btn btn-small btn-danger" data-del="' + a.id + '">Удалить</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function bindAppActions(a) {
+  const card = document.getElementById("app-" + a.id);
+  if (!card) return;
+  card.querySelector('[data-toggle]').addEventListener("click", async function() {
+    try {
+      await api("/admin-api/toggle", "POST", { id: a.id });
+      refresh();
+    } catch (e) { alert(e.message); }
+  });
+  card.querySelector('[data-del]').addEventListener("click", async function() {
+    if (!confirm("Удалить «" + a.name + "»?")) return;
+    try {
+      await api("/admin-api/delete", "POST", { id: a.id });
+      refresh();
+    } catch (e) { alert(e.message); }
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+
+async function refresh() {
+  document.getElementById("content").innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const [listData, statsData] = await Promise.all([
+      api("/admin-api/list"),
+      api("/admin-api/stats"),
+    ]);
+    renderStats(statsData.stats);
+    renderApps(listData.apps);
+  } catch (e) {
+    document.getElementById("content").innerHTML =
+      '<div class="error">Ошибка: ' + escapeHtml(e.message) + '<br><button class="btn btn-primary" onclick="refresh()" style="margin-top:12px;">Повторить</button></div>';
+  }
+}
+
+window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
