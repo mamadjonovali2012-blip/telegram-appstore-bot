@@ -5,3 +5,4 @@ __pycache__/
 apps.db
 .DS_Store
 node_modules/
+backup/apps_db.json
